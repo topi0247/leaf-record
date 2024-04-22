@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: postgres:latest
+    image: postgres
     container_name: leaf_memory_fb
     restart: always
     environment:
