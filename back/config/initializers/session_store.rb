@@ -1,0 +1,1 @@
+Rails.application.config.session_store :cookie_store, key: ENV['SESSION_STORE_KEY'], domain: ENV['SESSION_STORE_DOMAIN'], expire_after: 2.weeks, secure: Rails.env.production?
