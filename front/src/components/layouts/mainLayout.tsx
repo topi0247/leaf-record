@@ -8,7 +8,7 @@ export default function MainLayout({
       <header className="bg-gray-600 w-full">
         <Layout.Header />
       </header>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 relative">{children}</main>
       <footer>
         <Layout.Footer />
       </footer>

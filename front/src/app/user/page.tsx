@@ -1,6 +1,7 @@
 "use client";
 import { authClient } from "@/api";
 import { userState } from "@/recoil";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
@@ -8,6 +9,7 @@ import { useRecoilValue } from "recoil";
 interface Record {
   id: number;
   name: string;
+  created_at: string;
 }
 
 export default function UserPage() {
@@ -20,7 +22,7 @@ export default function UserPage() {
     const res = await authClient.get("/records");
     if (res.status !== 200) {
     }
-    console.log(res.data);
+    setRecords(res.data);
   }, []);
 
   useEffect(() => {
@@ -65,7 +67,13 @@ export default function UserPage() {
           <ul>
             {records.map((record) => (
               <li key={record.id}>
-                <p>{record.name}</p>
+                <Link
+                  href={`record/${record.name}`}
+                  className="bg-slate-300 text-black w-full px-4 py-2 rounded transition-all hover:bg-slate-400 text-xl flex justify-between items-center"
+                >
+                  <span>{record.name}</span>
+                  <span>作成日 {record.created_at}</span>
+                </Link>
               </li>
             ))}
           </ul>

@@ -2,8 +2,8 @@ class Api::V1::RecordsController < Api::V1::BasesController
   wrap_parameters false
 
   def index
-    records = current_user.records
-    render json: records.map { |record| record.repository_name }
+    records = current_user.records.order(created_at: :desc)
+    render json: records.map{|record| {id: record.id, name: record.repository_name, created_at: record.created_at.strftime("%Y-%m-%d %H:%M:%S")}}
   end
 
   def show
