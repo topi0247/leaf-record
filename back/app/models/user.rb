@@ -3,6 +3,7 @@ class User < ApplicationRecord
   devise :registerable, :recoverable, :rememberable, :trackable,
           :omniauthable, omniauth_providers: %i[github]
   include DeviseTokenAuth::Concerns::User
+  has_many :records, dependent: :destroy
 
   def self.from_omniauth(auth)
     # uidを取得

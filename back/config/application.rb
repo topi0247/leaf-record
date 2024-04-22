@@ -41,6 +41,8 @@ module App
     config.middleware.use ActionDispatch::Session::CookieStore, key: ENV['SESSION_STORE_KEY']
     # クロスサイト時に必要な設定、ドメインが異なっても使えるようにする
     config.action_dispatch.cookies_same_site_protection = :none
+
+
     config.autoload_paths << Rails.root.join('app/services')
   end
 end

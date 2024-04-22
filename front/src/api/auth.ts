@@ -4,7 +4,7 @@ import { useSetRecoilState } from "recoil";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION;
-const API_URL = `${BASE_API_URL}/api/${API_VERSION}`;
+const API_URL = `${BASE_API_URL}/api/${API_VERSION}/`;
 
 const baseClient = axios.create({
   baseURL: BASE_API_URL,
@@ -13,7 +13,7 @@ const baseClient = axios.create({
   },
 });
 
-const authClient = axios.create({
+export const authClient = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
@@ -54,51 +54,42 @@ export const useAuth = () => {
       localStorage.setItem("uid", uid);
       localStorage.setItem("expiry", expiry);
     }
-    try {
-      const res = await authClient.get("/me");
-      if (res.status !== 200) {
-        throw new Error("認証エラー");
-      }
-
-      const data = res.data;
-      if (!data.success) {
-        // サーバー側での処理失敗
-        return false;
-      }
-
-      setUser({ id: data.user.id, name: data.user.name });
-      return true;
-    } catch (e: any) {
+    const res = await authClient.get("/me");
+    if (res.status !== 200) {
       return false;
     }
+
+    const data = res.data;
+    if (!data.success) {
+      // サーバー側での処理失敗
+      return false;
+    }
+
+    setUser({ id: data.user.id, name: data.user.name });
+    return true;
   }
 
   // ログアウト
   async function logout(): Promise<boolean> {
-    try {
-      const res = await baseClient.delete("/auth/sign_out", {
-        headers: {
-          "access-token": localStorage.getItem("access-token"),
-          client: localStorage.getItem("client"),
-          uid: localStorage.getItem("uid"),
-          expiry: localStorage.getItem("expiry"),
-        },
-      });
-      if (res.status !== 200) {
-        throw new Error("認証エラー");
-      }
-
-      localStorage.removeItem("access-token");
-      localStorage.removeItem("client");
-      localStorage.removeItem("uid");
-      localStorage.removeItem("expiry");
-
-      setUser({ id: null, name: "" });
-      return true;
-    } catch (e: any) {
-      console.error(e);
+    const res = await baseClient.delete("/sign_out", {
+      headers: {
+        "access-token": localStorage.getItem("access-token"),
+        client: localStorage.getItem("client"),
+        uid: localStorage.getItem("uid"),
+        expiry: localStorage.getItem("expiry"),
+      },
+    });
+    if (res.status !== 200) {
       return false;
     }
+
+    localStorage.removeItem("access-token");
+    localStorage.removeItem("client");
+    localStorage.removeItem("uid");
+    localStorage.removeItem("expiry");
+
+    setUser({ id: null, name: "" });
+    return true;
   }
 
   return {
