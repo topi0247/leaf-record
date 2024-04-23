@@ -63,6 +63,7 @@ export default function RecordPage({
 
     setAllFile([...allFile, newFile]);
     setCurrentFile(newFile);
+    setFileName("");
   };
 
   const handleSelectFile = (name: string) => {
@@ -97,7 +98,36 @@ export default function RecordPage({
       return;
     }
     const newFileName = prompt("新しいファイル名を入力してください");
-    console.log(newFileName);
+    if (!newFileName) {
+      return;
+    }
+    currentFile.name = newFileName;
+    const updateAllFile = allFile
+      .map((file) => {
+        if (file.name === currentFile.name) {
+          return currentFile;
+        }
+        return file;
+      })
+      .filter((file): file is IFile => file !== null);
+    setAllFile(updateAllFile);
+  };
+
+  const handleDeleteFile = () => {
+    if (!currentFile?.name) {
+      alert("ファイルを選択してください");
+      return;
+    }
+    const isDelete = confirm("ファイルを削除しますか？");
+    if (!isDelete) {
+      return;
+    }
+    const updateAllFile = allFile.filter(
+      (file) => file.name !== currentFile.name
+    );
+    setAllFile(updateAllFile);
+    setCurrentFile(null);
+    setCurrentContent("");
   };
 
   return (
@@ -111,16 +141,9 @@ export default function RecordPage({
           </h4>
           <div className="mb-4 w-4/5 flex items-center">
             {currentFile?.name && (
-              <>
-                <h3 className="text-center text-3xl w-full">
-                  {currentFile?.name}
-                </h3>
-                {/* <div className="w-1/2">
-                <button className="text-end text-sm tracking-widest my-1 bg-slate-500 py-1 px-2 rounded hover:bg-slate-950 transition-all hover:text-white">
-                  ファイル名を変更する
-                </button>
-              </div> */}
-              </>
+              <h3 className="text-center text-3xl w-full">
+                {currentFile?.name}
+              </h3>
             )}
           </div>
         </div>
@@ -153,7 +176,7 @@ export default function RecordPage({
                           <FaFile className="opacity-50 text-sm" />
                         </div>
                         <button
-                          className="w-4/5"
+                          className="w-4/5 hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2"
                           type="button"
                           onClick={() => handleSelectFile(file.name)}
                         >
@@ -195,7 +218,10 @@ export default function RecordPage({
               </button>
             </li>
             <li>
-              <button className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded">
+              <button
+                className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded"
+                onClick={handleDeleteFile}
+              >
                 ファイル削除
               </button>
             </li>
