@@ -5,12 +5,7 @@ import Editor from "@/components/records";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
-
-interface IFile {
-  name: string;
-  path: string;
-  content?: string;
-}
+import { IFile } from "@/types";
 
 export default function RecordPage({
   params: { name },
@@ -18,8 +13,11 @@ export default function RecordPage({
   params: { name: string };
 }) {
   const [fileName, setFileName] = useState("");
-  const [currentContent, setCurrentContent] = useState("");
-  const [currentFile, setCurrentFile] = useState<IFile | null>(null);
+  const [currentFile, setCurrentFile] = useState<IFile>({
+    name: "",
+    path: "",
+    content: "",
+  });
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
 
@@ -43,7 +41,6 @@ export default function RecordPage({
       setAllFile(res.data || []);
       if (res.data.length > 0) {
         setCurrentFile(res.data[0]);
-        setCurrentContent(res.data[0].content || "");
       }
     };
     fetchData();
@@ -59,9 +56,19 @@ export default function RecordPage({
     const newFile = {
       name: fileName,
       path: fileName,
+      content: "",
     };
 
-    setAllFile([...allFile, newFile]);
+    const selectFile = allFile.find((file) => file.name === currentFile?.name);
+    let updateAllFile = allFile.map((file) => {
+      if (file.name === selectFile?.name) {
+        return currentFile;
+      }
+      return file;
+    });
+    updateAllFile.push(newFile);
+
+    setAllFile(updateAllFile);
     setCurrentFile(newFile);
     setFileName("");
   };
@@ -72,16 +79,10 @@ export default function RecordPage({
       return;
     }
 
-    const updateContent = currentContent;
-    const updateFile = {
-      ...currentFile,
-      content: updateContent,
-    };
-
     const updateAllFile = allFile
       .map((file) => {
-        if (file.name === updateFile.name) {
-          return updateFile;
+        if (file.name === currentFile?.name) {
+          return currentFile;
         }
         return file;
       })
@@ -89,7 +90,6 @@ export default function RecordPage({
 
     setAllFile(updateAllFile);
     setCurrentFile(selectedFile);
-    setCurrentContent(selectedFile.content || "");
   };
 
   const handleChangeFileName = () => {
@@ -126,20 +126,14 @@ export default function RecordPage({
       (file) => file.name !== currentFile.name
     );
     setAllFile(updateAllFile);
-    setCurrentFile(null);
-    setCurrentContent("");
+    setCurrentFile({ name: "", path: "", content: "" });
   };
 
   const handleSave = async () => {
-    const updateFile = {
-      ...currentFile,
-      content: currentContent,
-    };
-
     const updateAllFile = allFile
       .map((file) => {
-        if (file.name === updateFile.name) {
-          return updateFile;
+        if (file.name === currentFile?.name) {
+          return currentFile;
         }
         return file;
       })
@@ -220,7 +214,10 @@ export default function RecordPage({
                           <FaFile className="opacity-50 text-sm" />
                         </div>
                         <button
-                          className="w-4/5 hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2"
+                          className={`w-4/5 hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
+                            currentFile?.name === file.name &&
+                            `bg-slate-400 text-slate-900`
+                          }`}
                           type="button"
                           onClick={() => handleSelectFile(file.name)}
                         >
@@ -240,8 +237,8 @@ export default function RecordPage({
               <section className="my-8 rounded p-2 w-4/5 h-full">
                 <form className="bg-slate-700 w-full h-full rounded">
                   <Editor
-                    content={currentContent}
-                    setCurrentContent={setCurrentContent}
+                    currentFile={currentFile}
+                    setCurrentFile={setCurrentFile}
                   />
                 </form>
               </section>

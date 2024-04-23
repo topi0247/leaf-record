@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { IFile } from "@/types";
 
 const Editor = ({
-  content,
-  setCurrentContent,
+  currentFile,
+  setCurrentFile,
 }: {
-  content: string;
-  setCurrentContent: (content: string) => void;
+  currentFile: IFile;
+  setCurrentFile: (currentFile: IFile) => void;
 }) => {
   const INIT_ROWS = 50;
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -39,8 +40,9 @@ const Editor = ({
   }, []);
 
   useEffect(() => {
-    handleTextChange(content);
-  }, [content]);
+    const count = newlineCount(currentFile?.content || "");
+    setRows(count + INIT_ROWS / 2);
+  }, [currentFile?.content]);
 
   const newlineCount = (text: string) => {
     const regex = /\n/g;
@@ -48,9 +50,11 @@ const Editor = ({
     return matches ? matches.length : 0;
   };
 
-  const handleTextChange = (text: string) => {
-    const count = newlineCount(text);
-    setRows(count + INIT_ROWS / 2);
+  const handleUpdateContent = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCurrentFile({
+      ...currentFile,
+      content: e.target.value,
+    });
   };
 
   return (
@@ -58,8 +62,8 @@ const Editor = ({
       ref={textAreaRef}
       rows={rows}
       className="w-full bg-transparent p-4 py-8 focus:outline-none resize-none overflow-hidden rounded resize-x-none"
-      value={content}
-      onChange={(e) => setCurrentContent(e.target.value)}
+      value={currentFile?.content ? currentFile.content : ""}
+      onChange={handleUpdateContent}
     />
   );
 };
