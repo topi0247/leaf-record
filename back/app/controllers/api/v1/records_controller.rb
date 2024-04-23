@@ -2,8 +2,17 @@ class Api::V1::RecordsController < Api::V1::BasesController
   wrap_parameters false
 
   def index
-    records = current_user.records.order(created_at: :desc)
-    render json: records.map{|record| {id: record.id, name: record.repository_name, created_at: record.created_at.strftime("%Y-%m-%d %H:%M:%S")}}
+    records = current_user.records.map do |record|
+      {
+        name: record.repository_name,
+        created_at: record.created_at.strftime('%Y/%m/%d %H:%M:%S')
+      }
+    end
+
+    if records
+      records = records.sort_by { |record| record[:created_at] }.reverse
+    end
+    render json: records
   end
 
   def show
@@ -12,13 +21,21 @@ class Api::V1::RecordsController < Api::V1::BasesController
   end
 
   def create
-    current_user.reload
-    repo = Github.new(current_user)
-    if repo.create_repository(record_params[:repository_name])
-      render json: { success: true }
+    repository_name = record_params[:repository_name]
+    record = current_user.new_record(repository_name)
+
+    res = {}
+    if record
+      repo = Github.new(current_user)
+      res = repo.create_repository(repository_name)
+      if res[:success]
+        current_user.records.create(repository_name: repository_name)
+      end
     else
-      render json: { success: false }
+      res = { success: false, message: 'リポジトリがすでにあります。'}
     end
+
+    render json: res
   end
 
   private

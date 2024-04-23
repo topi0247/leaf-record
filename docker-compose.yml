@@ -2,7 +2,7 @@ version: '3'
 services:
   db:
     image: postgres
-    container_name: leaf_memory_fb
+    container_name: leaf_record_fb
     restart: always
     environment:
       TZ: Asia/Tokyo
