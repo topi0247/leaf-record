@@ -43,6 +43,8 @@ module App
     config.action_dispatch.cookies_same_site_protection = :none
 
 
-    config.autoload_paths << Rails.root.join('app/services')
+    # タイムゾーンを日本時間に設定
+    config.time_zone = 'Tokyo'
+    config.active_record.default_timezone = :local
   end
 end

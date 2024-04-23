@@ -38,25 +38,25 @@ class Github
   def get_all_files(repo_name)
     return [] if is_repository_empty?(repo_name)
 
-    get_all_files_recursive(repo_name).flatten
+    @remote_files = get_all_files_recursive(repo_name).flatten
   end
 
   def update_multiple_files(repo_name, files, commitMessage)
     @commitMessage = commitMessage
-    all_files = get_all_files(repo_name)
+    get_all_files(repo_name)
     error = []
 
     # 既存ファイルの更新
-    exits_files = files.filter { |file| all_files.any? { |f| f[:name] == file[:name] } }
+    exits_files = files.filter { |file| @remote_files.any? { |f| f[:name] == file[:name] } }
     error << exist_file_update(repo_name, exits_files)
 
     # 新規ファイルの作成
-    new_files = files.reject { |file| all_files.any? { |f| f[:name] == file[:name] } }
+    new_files = files.reject { |file| @remote_files.any? { |f| f[:name] == file[:name] } }
     error << new_file_create(repo_name, new_files)
 
     # ファイルの削除
-    #delete_files = all_files.select { |file| !files.include?(file['name']) }
-    #error << file_delete(repo_name, delete_files)
+    delete_files = @remote_files.reject { |file| files.any? { |f| f[:name] == file[:name] } }
+    error << file_delete(repo_name, delete_files)
 
     if error.flatten.length > 0
       { success: false, message: error}
@@ -100,12 +100,16 @@ class Github
     error = []
     files.each do |file|
       begin
-        # contentがnilの場合は空文字列をBase64エンコードした値を使う
+        # contentがnilだとエラーが発生するので空文字を代入
         content = file[:content].presence || ''
+
+        # contentとリモートリポジトリのファイル内容が同じ場合は更新しない
+        next if @remote_files.any? { |f| f[:name] == file[:name] && f[:content] == content }
+
         file_contents = @client.contents(set_repository_name(repo_name), path: file[:name])
 
         sha = file_contents.sha
-        @client.update_contents(set_repository_name(repo_name), file[:name], @commitMessage, sha,content)
+        @client.update_contents(set_repository_name(repo_name), file[:name], "更新 #{@commitMessage}", sha,content)
       rescue Octokit::Error => e
         Rails.logger.error e
         error << "#{file[:name]} の更新に失敗しました"
@@ -115,7 +119,6 @@ class Github
     error
   end
 
-
   def new_file_create(repo_name, files)
     return [] if files.empty?
 
@@ -124,7 +127,7 @@ class Github
       begin
         content = file[:content] || ''  # 空の内容でも許容する
         options = { content: content }
-        @client.create_contents(set_repository_name(repo_name), file[:name], @commitMessage, content)
+        @client.create_contents(set_repository_name(repo_name), file[:name], "作成 #{@commitMessage}", content)
       rescue Octokit::Error => e
         Rails.logger.error e
         error << "#{file[:name]} の作成に失敗しました"
@@ -140,17 +143,15 @@ class Github
     error = []
     files.each do |file|
       begin
-        constnt = file['content'] || ''
-        file_contents = @client.contents(set_repository_name(repo_name), path: file['name'])
+        file_contents = @client.contents(set_repository_name(repo_name), path: file[:name])
 
-        if file_contents.is_a?(Array)
-          Rails.logger.info "【削除】#{file['name']} ディレクトリです、スキップします..."
-          next
-        end
+        # ファイルが存在しない場合はスキップ
+        next if file_contents.nil?
 
-        sha = file_contents.sha.to_s
-        @client.delete_contents(set_repository_name(repo_name), file['name'], @commitMessage, sha)
+        sha = file_contents.sha
+        @client.delete_contents(set_repository_name(repo_name), file[:name], "削除 #{@commitMessage}", sha)
       rescue Octokit::Error => e
+        Rails.logger.error e
         error << "#{file[:name]} の削除に失敗しました"
       end
     end
