@@ -47,20 +47,18 @@ class Github
     error = []
 
     # 既存ファイルの更新
-    exits_files = files.map { |file|
-      all_files.find { |f| f[:name] == file[:name] }
-    }
-    # error << exit_file_update(repo_name, exits_files)
+    exits_files = files.filter { |file| all_files.any? { |f| f[:name] == file[:name] } }
+    error << exist_file_update(repo_name, exits_files)
 
     # 新規ファイルの作成
     new_files = files.reject { |file| all_files.any? { |f| f[:name] == file[:name] } }
-    error << new_file_create(repo_name, new_files).flatten
+    error << new_file_create(repo_name, new_files)
 
     # ファイルの削除
     #delete_files = all_files.select { |file| !files.include?(file['name']) }
     #error << file_delete(repo_name, delete_files)
 
-    if error.length > 0
+    if error.flatten.length > 0
       { success: false, message: error}
     else
       { success: true, message: '保存が完了しました' }
@@ -96,21 +94,18 @@ class Github
     files
   end
 
-  def exit_file_update(repo_name, files)
-    return [] if files == [] || files.nil?
+  def exist_file_update(repo_name, files)
+    return [] if files.nil? || files.empty?
 
     error = []
-
-    # 既存ファイルの更新
     files.each do |file|
       begin
-        content = file[:content].presence
-        content = Base64.encode64(content) if content
+        # contentがnilの場合は空文字列をBase64エンコードした値を使う
+        content = file[:content].presence || ''
         file_contents = @client.contents(set_repository_name(repo_name), path: file[:name])
 
-        sha = file_contents[:sha]
-        options = { content: content }.compact
-        @client.update_contents(set_repository_name(repo_name), file[:name], @commitMessage, sha, options)
+        sha = file_contents.sha
+        @client.update_contents(set_repository_name(repo_name), file[:name], @commitMessage, sha,content)
       rescue Octokit::Error => e
         Rails.logger.error e
         error << "#{file[:name]} の更新に失敗しました"
@@ -119,6 +114,7 @@ class Github
 
     error
   end
+
 
   def new_file_create(repo_name, files)
     return [] if files.empty?

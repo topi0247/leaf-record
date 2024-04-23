@@ -19,7 +19,7 @@ export default function Header() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const logged = await currentUser();
+      const logged = await currentUser().then((res) => res);
       if (logged) {
         router.push("/user");
       } else {
