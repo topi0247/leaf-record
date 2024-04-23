@@ -40,7 +40,7 @@ export default function Header() {
             user.id ? "grid-cols-2" : "grid-cols-1"
           } justify-center items-center text-center`}
         >
-          {user.id ? (
+          {user.id && (
             <>
               <li>
                 <Link
@@ -59,15 +59,6 @@ export default function Header() {
                 </button>
               </li>
             </>
-          ) : (
-            <li>
-              <button
-                onClick={login}
-                className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all"
-              >
-                ログイン
-              </button>
-            </li>
           )}
         </ul>
       </nav>
