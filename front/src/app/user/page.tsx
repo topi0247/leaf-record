@@ -1,5 +1,5 @@
 "use client";
-import { authClient } from "@/api";
+import { authClient, useAuth } from "@/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +13,7 @@ interface Record {
 }
 
 export default function UserPage() {
+  const { currentUser } = useAuth();
   const [name, setName] = useState("");
   const [records, setRecords] = useState([] as Record[]);
   const router = useRouter();
@@ -33,6 +34,18 @@ export default function UserPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const uid = queryParams.get("uid");
+    const client = queryParams.get("client");
+    const token = queryParams.get("token");
+    const expiry = queryParams.get("expiry");
+    if (uid && client && token && expiry) {
+      currentUser({ uid, client, token, expiry });
+      router.push("/user");
+    }
+  }, []);
 
   const handleCreateRecord = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,7 +92,7 @@ export default function UserPage() {
         </form>
       </section>
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">記録一覧</h2>
+        <h2 className="text-xl font-semibold">記録集一覧</h2>
         {records.length === 0 ? (
           <p>記録がありません</p>
         ) : (

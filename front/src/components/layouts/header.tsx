@@ -19,21 +19,11 @@ export default function Header() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const queryParams = new URLSearchParams(window.location.search);
-      const uid = queryParams.get("uid");
-      const client = queryParams.get("client");
-      const token = queryParams.get("token");
-      const expiry = queryParams.get("expiry");
-      if (uid && client && token && expiry) {
-        await currentUser({ uid, client, token, expiry });
+      const logged = await currentUser();
+      if (logged) {
         router.push("/user");
       } else {
-        const logged = await currentUser();
-        if (logged) {
-          router.push("/user");
-        } else {
-          router.push("/");
-        }
+        router.push("/");
       }
     };
     fetchData();

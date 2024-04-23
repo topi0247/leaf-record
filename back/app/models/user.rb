@@ -13,8 +13,7 @@ class User < ApplicationRecord
     user = User.find_or_create_by(uid: uid) do |new_user|
       new_user.provider = auth.provider
       new_user.uid = auth.uid
-      # 名前がすでに設定されていたらそちらを使う
-      new_user.name = new_user.name.presence || auth.info.name
+      new_user.name = auth.info.nickname
     end
 
     user

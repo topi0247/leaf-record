@@ -1,5 +1,5 @@
 class Api::V1::RecordsController < Api::V1::BasesController
-  wrap_parameters false
+
 
   def index
     records = current_user.records.map do |record|
@@ -16,8 +16,9 @@ class Api::V1::RecordsController < Api::V1::BasesController
   end
 
   def show
+    Rails.logger.debug("params: #{record_params}")
     repo = Github.new(current_user)
-    render json: repo.get_repository_details(record_params[:repository_name])
+    render json: repo.get_all_files(record_params[:id])
   end
 
   def create
@@ -38,9 +39,12 @@ class Api::V1::RecordsController < Api::V1::BasesController
     render json: res
   end
 
+  def update
+  end
+
   private
 
   def record_params
-    params.permit(:repository_name)
+    params.permit(:id, :repository_name)
   end
 end

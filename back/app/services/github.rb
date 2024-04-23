@@ -35,25 +35,46 @@ class Github
     end
   end
 
-  def get_repository_details(name)
-    repository = @client.repository(name)
-    contents = get_contents_recursive(name)
-    {
-      name: repository.name,
-      owner: repository.owner.login,
-      files: contents.select { |content| content.type == 'file' }.map { |file| file.name },
-      folders: contents.select { |content| content.type == 'dir' }.map { |folder| folder.name },
-      file_contents: contents.select { |content| content.type == 'file' }.map { |file| Base64.decode64(@client.contents(name, path: file.path).content) }
-    }
+  def get_all_files(repo_name)
+    return [] if is_repository_empty?(repo_name)
+
+    get_all_files_recursive("#{@current_user.name}/#{repo_name}").flatten
   end
 
-  def get_contents_recursive(repo, path = '')
-    contents = @client.contents(repo, path: path)
-    contents.each_with_object([]) do |content, all_contents|
-      all_contents << content
-      if content.type == 'dir'
-        all_contents.concat(get_contents_recursive(repo, content.path))
+  def update_multiple_files(repository, files, message)
+    files.each do |file, content|
+      begin
+        @client.update_contents(repository, file, message, content)
+      rescue Octokit::Error => e
+        return { success: false, message: "Failed to update file: #{file}" }
       end
     end
+    { success: true, message: 'Updated files successfully' }
+  end
+
+  private
+
+  def is_repository_empty?(repo_name)
+    @client.contents("#{@current_user.name}/#{repo_name}")
+    false
+  rescue Octokit::NotFound
+    true
+  end
+
+  def get_all_files_recursive(repo_name, path = '')
+    Rails.logger.debug("repo_name: #{repo_name}, path: #{path}")
+    contents = @client.contents(repo_name, path: path)
+
+    files = []
+
+    contents.each do |content|
+      if content.type == 'file'
+        files << { name: content.name, path: content.path, content: content.content }
+      elsif content.type == 'dir'
+        files << get_all_files_recursive(repo_name, content.path)
+      end
+    end
+
+    files
   end
 end
