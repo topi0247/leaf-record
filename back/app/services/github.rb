@@ -54,10 +54,7 @@ class Github
 
     # 新規ファイルの作成
     new_files = files.reject { |file| all_files.any? { |f| f[:name] == file[:name] } }
-
-    Rails.logger.info "新規ファイル: #{new_files}"
-    error << new_file_create(repo_name, new_files)
-    Rails.logger.info "エラー: #{error}"
+    error << new_file_create(repo_name, new_files).flatten
 
     # ファイルの削除
     #delete_files = all_files.select { |file| !files.include?(file['name']) }
@@ -131,8 +128,6 @@ class Github
       begin
         content = file[:content] || ''  # 空の内容でも許容する
         options = { content: content }
-        Rails.logger.info options
-        # optionsハッシュをcreate_contentsメソッドに渡す必要があります
         @client.create_contents(set_repository_name(repo_name), file[:name], @commitMessage, content)
       rescue Octokit::Error => e
         Rails.logger.error e
