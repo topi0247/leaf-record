@@ -268,7 +268,7 @@ export default function RecordPage({
             </li>
             <li>
               <button className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded">
-                プレビュー
+                プレビュー（※未実装）
               </button>
             </li>
             <li>

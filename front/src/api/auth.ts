@@ -56,12 +56,13 @@ export const useAuth = () => {
     }
     const res = await authClient.get("/me");
     if (res.status !== 200) {
+      clearStorage();
       return false;
     }
 
     const data = res.data;
     if (!data.success) {
-      // サーバー側での処理失敗
+      clearStorage();
       return false;
     }
 
@@ -83,14 +84,18 @@ export const useAuth = () => {
       return false;
     }
 
-    localStorage.removeItem("access-token");
-    localStorage.removeItem("client");
-    localStorage.removeItem("uid");
-    localStorage.removeItem("expiry");
+    clearStorage();
 
     setUser({ id: null, name: "" });
     return true;
   }
+
+  const clearStorage = () => {
+    localStorage.removeItem("access-token");
+    localStorage.removeItem("client");
+    localStorage.removeItem("uid");
+    localStorage.removeItem("expiry");
+  };
 
   return {
     login,
