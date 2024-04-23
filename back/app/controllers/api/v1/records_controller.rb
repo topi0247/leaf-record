@@ -57,6 +57,13 @@ class Api::V1::RecordsController < Api::V1::BasesController
     end
 
     repository_name = record_params[:id]
+
+    # レコードのDBに保存されていないリポジトリの削除を防止
+    if current_user.records.find_by(repository_name: repository_name).nil?
+      render json: { success: false, message: '記録集データがありません' }
+      return
+    end
+
     repo = set_repository
 
     repo_update = repo.update_multiple_files(repository_name, record_params[:files], DateTime.now.strftime('%Y/%m/%d %H:%M:%S'))

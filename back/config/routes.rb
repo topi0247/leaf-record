@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get 'me', to: 'users#me'
-      resources :records
+      resources :records, only: %i[index show create update]
     end
   end
 end
