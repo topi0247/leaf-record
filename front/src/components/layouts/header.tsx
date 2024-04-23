@@ -21,7 +21,7 @@ export default function Header() {
     const fetchData = async () => {
       const logged = await currentUser().then((res) => res);
       if (logged) {
-        router.push("/user");
+        router.push("/record");
       } else {
         router.push("/");
       }
@@ -44,7 +44,7 @@ export default function Header() {
             <>
               <li>
                 <Link
-                  href="/user"
+                  href="/record"
                   className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all"
                 >
                   {user.name}

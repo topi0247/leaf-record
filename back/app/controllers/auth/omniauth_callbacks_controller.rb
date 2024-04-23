@@ -22,7 +22,7 @@ class Auth::OmniauthCallbacksController < DeviseTokenAuth::OmniauthCallbacksCont
       user.github_token = Encryptor.encrypt(github_token)
 
       if user.save
-        redirect_to "#{ENV['FRONT_URL']}/user?uid=#{user.uid}&token=#{token}&client=#{client_id}&expiry=#{expiry}", allow_other_host: true
+        redirect_to "#{ENV['FRONT_URL']}/record?uid=#{user.uid}&token=#{token}&client=#{client_id}&expiry=#{expiry}", allow_other_host: true
       else
         redirect_to "#{ENV['FRONT_URL']}/?status=error", allow_other_host: true
       end

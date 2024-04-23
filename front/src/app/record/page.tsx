@@ -43,7 +43,7 @@ export default function UserPage() {
     const expiry = queryParams.get("expiry");
     if (uid && client && token && expiry) {
       currentUser({ uid, client, token, expiry });
-      router.push("/user");
+      router.push("/record");
     }
   }, []);
 
