@@ -1,6 +1,5 @@
 class Api::V1::RecordsController < Api::V1::BasesController
 
-
   def index
     records = current_user.records.map do |record|
       {
@@ -12,12 +11,11 @@ class Api::V1::RecordsController < Api::V1::BasesController
     if records
       records = records.sort_by { |record| record[:created_at] }.reverse
     end
-    render json: records
+    render json: records, status: :ok
   end
 
   def show
-    Rails.logger.debug("params: #{record_params}")
-    repo = Github.new(current_user)
+    repo = set_repository
     render json: repo.get_all_files(record_params[:id])
   end
 
@@ -27,7 +25,7 @@ class Api::V1::RecordsController < Api::V1::BasesController
 
     res = {}
     if record
-      repo = Github.new(current_user)
+      repo = set_repository
       res = repo.create_repository(repository_name)
       if res[:success]
         current_user.records.create(repository_name: repository_name)
@@ -36,15 +34,30 @@ class Api::V1::RecordsController < Api::V1::BasesController
       res = { success: false, message: 'リポジトリがすでにあります。'}
     end
 
-    render json: res
+    render json: res, status: :ok
   end
 
   def update
+    if record_params[:files].nil?
+      render json: { success: false, message: 'ファイルがありません' }
+      return
+    end
+
+    repository_name = record_params[:id]
+    repo = set_repository
+
+    repo_update = repo.update_multiple_files(repository_name, record_params[:files], Date.today.strftime('%Y/%m/%d %H:%M:%S'))
+
+    render json: repo_update, state: :ok
   end
 
   private
 
   def record_params
-    params.permit(:id, :repository_name)
+    params.permit(:id, files: [:name, :content, :path])
+  end
+
+  def set_repository
+    Github.new(current_user)
   end
 end

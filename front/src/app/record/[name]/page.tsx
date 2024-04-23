@@ -8,7 +8,7 @@ import { FaFile } from "react-icons/fa";
 
 interface IFile {
   name: string;
-  path?: string;
+  path: string;
   content?: string;
 }
 
@@ -40,11 +40,10 @@ export default function RecordPage({
         return;
       }
 
-      setAllFile(res.data.data || []);
+      setAllFile(res.data || []);
       if (res.data.length > 0) {
         setCurrentFile(res.data[0]);
         setCurrentContent(res.data[0].content || "");
-      } else {
       }
     };
     fetchData();
@@ -59,6 +58,7 @@ export default function RecordPage({
 
     const newFile = {
       name: fileName,
+      path: fileName,
     };
 
     setAllFile([...allFile, newFile]);
@@ -130,6 +130,43 @@ export default function RecordPage({
     setCurrentContent("");
   };
 
+  const handleSave = async () => {
+    const updateFile = {
+      ...currentFile,
+      content: currentContent,
+    };
+
+    const updateAllFile = allFile
+      .map((file) => {
+        if (file.name === updateFile.name) {
+          return updateFile;
+        }
+        return file;
+      })
+      .filter((file): file is IFile => file !== null);
+    setAllFile(updateAllFile);
+
+    const res = await authClient.patch(`/records/${name}`, {
+      files: updateAllFile,
+    });
+    if (res.status === 500) {
+      alert("エラーが発生しました");
+      return;
+    } else if (res.status === 401) {
+      alert("ログインしてください");
+      router.push("/");
+      return;
+    }
+
+    if (res.data.success === false) {
+      const message = res.data.message.join("\n");
+      alert(message);
+      return;
+    }
+
+    alert("保存しました");
+  };
+
   return (
     <>
       <article className="container m-auto my-8 min-h-screen h-full">
@@ -158,7 +195,14 @@ export default function RecordPage({
                   onChange={(e) => setFileName(e.target.value)}
                   value={fileName}
                 />
-                <button className="text-sm text-center block m-auto w-full tracking-widest my-1 bg-slate-500 py-1 rounded hover:bg-slate-950 transition-all hover:text-white">
+                <button
+                  className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
+                    fileName.length === 0
+                      ? "bg-slate-950 cursor-not-allowed"
+                      : "bg-slate-500"
+                  }`}
+                  disabled={fileName.length === 0}
+                >
                   新規ファイル作成
                 </button>
                 <span className="text-xs">※拡張子もつけてください</span>
@@ -231,8 +275,11 @@ export default function RecordPage({
               </button>
             </li>
             <li>
-              <button className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded">
-                全体保存
+              <button
+                className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded"
+                onClick={handleSave}
+              >
+                保存
               </button>
             </li>
           </ul>
