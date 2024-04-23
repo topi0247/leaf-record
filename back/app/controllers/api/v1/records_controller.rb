@@ -9,6 +9,19 @@ class Api::V1::RecordsController < Api::V1::BasesController
     end
 
     if records
+      repo = set_repository
+      exist_records = records.map do |record|
+        repo.exist_repository?(record[:name]) ? record : nil
+      end.compact
+
+      # 存在しないレコードを削除
+      if records.length != exist_records.length
+        not_exist_records = records - exist_records
+        not_exist_records.each do |record|
+          Record.find_by(repository_name: record[:name]).destroy
+        end
+      end
+
       records = records.sort_by { |record| record[:created_at] }.reverse
     end
     render json: records, status: :ok

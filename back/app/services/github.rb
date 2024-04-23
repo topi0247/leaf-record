@@ -8,6 +8,10 @@ class Github
     @client = Octokit::Client.new(access_token: decrypted)
   end
 
+  def exist_repository?(name)
+    get_repositories.any? { |repository| repository[:name] == name }
+  end
+
   def get_repositories
     @client.repositories(sort: 'created', direction: 'desc').map do |repository|
       {
