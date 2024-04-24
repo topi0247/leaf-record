@@ -45,7 +45,7 @@ export default function RecordPage({
       }
     };
     fetchData();
-  }, []);
+  }, [name, router]);
 
   const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

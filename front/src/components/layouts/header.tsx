@@ -27,7 +27,7 @@ export default function Header() {
       }
     };
     fetchData();
-  }, []);
+  }, [currentUser, router]);
 
   const handleLogout = async () => {
     const res = await logout();

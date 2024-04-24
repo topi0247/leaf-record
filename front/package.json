@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@next/third-parties": "^14.2.2",
     "@types/dompurify": "^3.0.5",
     "@types/gtag.js": "^0.0.19",
     "@vercel/analytics": "^1.2.2",

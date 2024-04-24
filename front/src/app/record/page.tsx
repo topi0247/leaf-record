@@ -43,7 +43,7 @@ export default function UserPage() {
       return;
     }
     setRecords(res.data);
-  }, []);
+  }, [currentUser, router]);
 
   useEffect(() => {
     fetchData();
