@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  root "static_pages#index"
   mount_devise_token_auth_for 'User', at: 'auth', controllers: {
     omniauth_callbacks: 'auth/omniauth_callbacks',
   }
