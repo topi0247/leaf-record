@@ -13,13 +13,13 @@ const RampartOneFont = Rampart_One({
 });
 
 export default function Header() {
-  const { currentUser, login, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const user = useRecoilValue(userState);
   const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
-      const logged = await currentUser().then((res) => res);
+      const logged = await currentUser();
       if (logged) {
         router.push("/record");
       } else {
@@ -28,6 +28,13 @@ export default function Header() {
     };
     fetchData();
   }, []);
+
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res) {
+      router.push("/");
+    }
+  };
 
   return (
     <div className="container flex justify-between items-center m-auto">
@@ -52,7 +59,7 @@ export default function Header() {
               </li>
               <li>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all"
                 >
                   ログアウト

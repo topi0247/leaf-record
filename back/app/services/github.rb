@@ -8,8 +8,11 @@ class Github
     @client = Octokit::Client.new(access_token: decrypted)
   end
 
-  def exist_repository?(name)
-    get_repositories.any? { |repository| repository[:name] == name }
+  def repository_exists?(repo_name)
+    @client.repository(set_repository_name(repo_name))
+    true
+  rescue Octokit::NotFound
+    false
   end
 
   def get_repositories
@@ -31,6 +34,7 @@ class Github
         { success: false, message: 'リポジトリの作成に失敗しました'}
       end
     rescue Octokit::Error => e
+      Rails.logger.error e
       if e.message.to_s.include?('name already exists on this account')
         { success: false, message: 'リポジトリ名が既に存在しています'}
       else
@@ -40,7 +44,7 @@ class Github
   end
 
   def get_all_files(repo_name)
-    return [] if is_repository_empty?(repo_name)
+    return [] unless repository_exists?(repo_name)
 
     @remote_files = get_all_files_recursive(repo_name).flatten
   end
@@ -75,14 +79,14 @@ class Github
     "#{@current_user.name}/#{name}"
   end
 
-  def is_repository_empty?(repo_name)
-    @client.contents(set_repository_name(repo_name))
-    false
+  def repository_empty?(repo_name)
+    @client.contents(set_repository_name(repo_name)).empty?
   rescue Octokit::NotFound
     true
   end
 
   def get_all_files_recursive(repo_name, path = '')
+    return [] if repository_empty?(repo_name)
     contents = @client.contents(set_repository_name(repo_name), path: path)
 
     files = []

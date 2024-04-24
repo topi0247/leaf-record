@@ -72,7 +72,7 @@ export const useAuth = () => {
 
   // ログアウト
   async function logout(): Promise<boolean> {
-    const res = await baseClient.delete("/sign_out", {
+    const res = await baseClient.delete("/auth/sign_out", {
       headers: {
         "access-token": localStorage.getItem("access-token"),
         client: localStorage.getItem("client"),

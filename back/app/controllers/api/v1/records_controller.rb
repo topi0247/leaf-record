@@ -1,4 +1,5 @@
 class Api::V1::RecordsController < Api::V1::BasesController
+  wrap_parameters false
 
   def index
     records = current_user.records.map do |record|
@@ -8,28 +9,25 @@ class Api::V1::RecordsController < Api::V1::BasesController
       }
     end
 
-    if records
-      repo = set_repository
-      exist_records = records.map do |record|
-        repo.exist_repository?(record[:name]) ? record : nil
-      end.compact
-
-      # 存在しないレコードを削除
-      if records.length != exist_records.length
-        not_exist_records = records - exist_records
-        not_exist_records.each do |record|
-          Record.find_by(repository_name: record[:name]).destroy
-        end
-      end
-
-      records = records.sort_by { |record| record[:created_at] }.reverse
-    end
+    records = records.sort_by { |record| record[:created_at] }.reverse
     render json: records, status: :ok
   end
 
   def show
     repo = set_repository
-    render json: repo.get_all_files(record_params[:id])
+
+    repository_name = record_params[:id]
+    unless repo.repository_exists?(repository_name)
+      record = Record.find_by(repository_name: repository_name)
+      if record
+        record.destroy
+      end
+
+      render json: { success: false, message: 'リポジトリがありません' }
+      return
+    end
+
+    render json: { success: true, files: repo.get_all_files(repository_name)}, status: :ok
   end
 
   def create
@@ -41,7 +39,7 @@ class Api::V1::RecordsController < Api::V1::BasesController
       repo = set_repository
       res = repo.create_repository(repository_name)
       if res[:success]
-        current_user.records.create(repository_name: repository_name)
+        record.save
       end
     else
       res = { success: false, message: 'リポジトリがすでにあります。'}
@@ -74,7 +72,7 @@ class Api::V1::RecordsController < Api::V1::BasesController
   private
 
   def record_params
-    params.permit(:id, files: [:name, :content, :path])
+    params.permit(:id, :repository_name, files: [:name, :content, :path])
   end
 
   def set_repository

@@ -1,4 +1,5 @@
 class Api::V1::UsersController < Api::V1::BasesController
+  wrap_parameters false
   skip_before_action :authenticate_user!, only: %i[me]
 
   def me

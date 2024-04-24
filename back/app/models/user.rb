@@ -22,9 +22,7 @@ class User < ApplicationRecord
   def new_record(repository_name)
     if records.find_by(repository_name: repository_name).nil?
       records.new(repository_name: repository_name)
-      true
     else
-      false
     end
   end
 end

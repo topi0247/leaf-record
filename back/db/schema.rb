@@ -19,7 +19,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_23_041457) do
     t.string "repository_name", limit: 255, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id", "repository_name"], name: "index_records_on_user_id_and_repository_name", unique: true
     t.index ["user_id"], name: "index_records_on_user_id"
   end
 

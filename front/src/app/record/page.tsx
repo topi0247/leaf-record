@@ -17,8 +17,22 @@ export default function UserPage() {
   const [name, setName] = useState("");
   const [records, setRecords] = useState([] as Record[]);
   const router = useRouter();
+  const [validation, setValidation] = useState(false);
 
   const fetchData = useCallback(async () => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const uid = queryParams.get("uid");
+    const client = queryParams.get("client");
+    const token = queryParams.get("token");
+    const expiry = queryParams.get("expiry");
+    let logged = false;
+    if (uid && client && token && expiry) {
+      currentUser({ uid, client, token, expiry }).then((res) => (logged = res));
+      router.push("/record");
+    } else {
+      currentUser().then((res) => (logged = res));
+    }
+
     const res = await authClient.get("/records");
     if (res.status === 500) {
       alert("エラーが発生しました");
@@ -34,18 +48,6 @@ export default function UserPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const uid = queryParams.get("uid");
-    const client = queryParams.get("client");
-    const token = queryParams.get("token");
-    const expiry = queryParams.get("expiry");
-    if (uid && client && token && expiry) {
-      currentUser({ uid, client, token, expiry });
-      router.push("/record");
-    }
-  }, []);
 
   const handleCreateRecord = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -67,21 +69,37 @@ export default function UserPage() {
     }
   };
 
+  const handleSetName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+    if (!/^[a-zA-Z0-9-_\. ]+$/.test(e.target.value)) {
+      setValidation(true);
+    } else {
+      setValidation(false);
+    }
+  };
+
   return (
     <article className="container m-auto my-8">
-      <section className="flex items-center justify-end gap-3">
+      <section className="flex items-center gap-3 justify-end">
         <h3 className="text-xl">新しい記録集を作る</h3>
         <form className="flex gap-2" onSubmit={handleCreateRecord}>
-          <input
-            type="text"
-            className="text-black px-2 rounded"
-            onChange={(e) => setName(e.target.value)}
-            value={name}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              className="text-black p-2 rounded"
+              onChange={handleSetName}
+              value={name}
+            />
+            {name && validation && (
+              <span className="absolute left-0 -bottom-7 text-xs text-red-400 text-center w-full">
+                英数字「-」「_」「.」半角スペースのみ
+              </span>
+            )}
+          </div>
           <button
             type="submit"
             disabled={name.length === 0}
-            className={`px-4 py-2 rounded transition-all hover:bg-gray-400 ${
+            className={`px-4 py-2 rounded transition-all hover:bg-gray-500 ${
               name.length === 0
                 ? "bg-gray-500 text-gray-800"
                 : "bg-white text-black"

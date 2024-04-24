@@ -35,10 +35,11 @@ export default function RecordPage({
 
       if (res.data.success === false) {
         alert(res.data.message);
+        router.push("/record");
         return;
       }
 
-      setAllFile(res.data || []);
+      setAllFile(res.data.files || []);
       if (res.data.length > 0) {
         setCurrentFile(res.data[0]);
       }
