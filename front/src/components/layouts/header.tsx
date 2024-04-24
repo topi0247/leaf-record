@@ -4,7 +4,7 @@ import { userState } from "@/recoil";
 import { Rampart_One } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 
 const RampartOneFont = Rampart_One({
@@ -16,18 +16,21 @@ export default function Header() {
   const { currentUser, logout } = useAuth();
   const user = useRecoilValue(userState);
   const router = useRouter();
+  const [logged, setLogged] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    const login = await currentUser();
+    setLogged(login);
+    if (login) {
+      router.push("/record");
+    } else {
+      router.push("/");
+    }
+  }, [currentUser, router]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const logged = await currentUser();
-      if (logged) {
-        router.push("/record");
-      } else {
-        router.push("/");
-      }
-    };
     fetchData();
-  }, [currentUser, router]);
+  }, [fetchData]);
 
   const handleLogout = async () => {
     const res = await logout();

@@ -3,7 +3,7 @@
 import { authClient } from "@/api";
 import Editor from "@/components/records";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
 
@@ -21,31 +21,32 @@ export default function RecordPage({
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
 
+  const fetchData = useCallback(async () => {
+    const res = await authClient.get(`/records/${name}`);
+    if (res.status === 500) {
+      alert("エラーが発生しました");
+      return;
+    } else if (res.status === 401) {
+      alert("ログインしてください");
+      router.push("/");
+      return;
+    }
+
+    if (res.data.success === false) {
+      alert(res.data.message);
+      router.push("/record");
+      return;
+    }
+
+    setAllFile(res.data.files || []);
+    if (res.data.length > 0) {
+      setCurrentFile(res.data[0]);
+    }
+  }, [router]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await authClient.get(`/records/${name}`);
-      if (res.status === 500) {
-        alert("エラーが発生しました");
-        return;
-      } else if (res.status === 401) {
-        alert("ログインしてください");
-        router.push("/");
-        return;
-      }
-
-      if (res.data.success === false) {
-        alert(res.data.message);
-        router.push("/record");
-        return;
-      }
-
-      setAllFile(res.data.files || []);
-      if (res.data.length > 0) {
-        setCurrentFile(res.data[0]);
-      }
-    };
     fetchData();
-  }, [name, router]);
+  }, [fetchData]);
 
   const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
