@@ -160,7 +160,40 @@ export default function RecordPage({
       return;
     }
 
-    alert("保存しました");
+    alert("コミットしました");
+  };
+
+  const handleCreateFileSP = () => {
+    const newFileName = prompt(
+      "新しいファイル名を入力してください\n※拡張子もつけてください"
+    );
+    if (!newFileName) {
+      return;
+    }
+
+    if (allFile?.some((file) => file.name === newFileName)) {
+      alert("ファイル名が重複しています");
+      return;
+    }
+
+    const newFile = {
+      name: newFileName,
+      path: newFileName,
+      content: "",
+    };
+
+    const selectFile = allFile.find((file) => file.name === currentFile?.name);
+    let updateAllFile = allFile.map((file) => {
+      if (file.name === selectFile?.name) {
+        return currentFile;
+      }
+      return file;
+    });
+    updateAllFile.push(newFile);
+
+    setAllFile(updateAllFile);
+    setCurrentFile(newFile);
+    setFileName("");
   };
 
   return (
@@ -282,38 +315,47 @@ export default function RecordPage({
             ファイル操作
           </Shadcn.DrawerTrigger>
           <Shadcn.DrawerContent>
-            <div className="flex justify-end items-center mr-2 my-3 gap-3">
-              <button
-                className="bg-red-400 text-white px-2 p-1 rounded"
-                onClick={handleDeleteFile}
-              >
-                削除
-              </button>
-              <button
-                className="rounded border border-slate-300 px-2 py-1"
-                onClick={handleChangeFileName}
-              >
-                ファイル名変更
-              </button>
-            </div>
             <Shadcn.Select
               defaultValue={currentFile.name}
               onValueChange={handleSelectFile}
             >
-              <Shadcn.SelectTrigger>
-                <Shadcn.SelectValue
-                  placeholder={currentFile.name || "ファイル名"}
-                />
-              </Shadcn.SelectTrigger>
-              <Shadcn.SelectContent>
-                {allFile.map((file, index) => (
-                  <Shadcn.SelectItem key={index} value={file.name}>
-                    {file.name}
-                  </Shadcn.SelectItem>
-                ))}
-              </Shadcn.SelectContent>
+              <div className="flex flex-col px-3 w-full justify-center items-center">
+                <span className="text-end w-full text-xs">ファイル選択</span>
+                <Shadcn.SelectTrigger className="w-full">
+                  <Shadcn.SelectValue
+                    placeholder={currentFile.name || "ファイル名"}
+                  />
+                </Shadcn.SelectTrigger>
+                <Shadcn.SelectContent>
+                  {allFile.map((file, index) => (
+                    <Shadcn.SelectItem key={index} value={file.name}>
+                      {file.name}
+                    </Shadcn.SelectItem>
+                  ))}
+                </Shadcn.SelectContent>
+              </div>
             </Shadcn.Select>
             <Shadcn.DrawerFooter>
+              <div className="flex justify-end items-center mr-2 my-3 gap-2">
+                <button
+                  className="bg-red-400 text-white px-2 p-1 rounded"
+                  onClick={handleDeleteFile}
+                >
+                  削除
+                </button>
+                <button
+                  className="rounded border border-slate-300 px-2 py-1"
+                  onClick={handleChangeFileName}
+                >
+                  ファイル名変更
+                </button>
+                <button
+                  className="rounded border border-slate-300 px-2 py-1"
+                  onClick={handleCreateFileSP}
+                >
+                  新規作成
+                </button>
+              </div>
               <Shadcn.DrawerClose>戻る</Shadcn.DrawerClose>
             </Shadcn.DrawerFooter>
           </Shadcn.DrawerContent>

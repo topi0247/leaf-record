@@ -1,7 +1,15 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
-    <p className="text-center mb-1 md:text-end md:mb-5 md:mr-12">
-      ©2024 Leaf Record
-    </p>
+    <div>
+      <ul className="flex justify-center items-center text-xs gap-2">
+        <li>©2024 Leaf Record</li>
+        <li>
+          <Link href="/privacypolicy">プライバシーポリシー</Link>
+        </li>
+        <li><Link href="/">利用規約</Link></li>
+      </ul>
+    </div>
   );
 }

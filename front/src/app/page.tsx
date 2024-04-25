@@ -12,7 +12,7 @@ export default function Home() {
   const { login } = useAuth();
   return (
     <article className="flex flex-col gap-12 justify-center items-center min-h-screen m-8 md:m-auto">
-      <div className="min-h-96 justify-center flex flex-col gap-3 md:gap-6 md:justify-between items-center md:min-h-min">
+      <div className="justify-center flex flex-col gap-3 md:gap-6 md:justify-between items-center">
         <h2
           className={`${RampartOneFont.className} text-5xl md:text-6xl text-center flex flex-col`}
         >

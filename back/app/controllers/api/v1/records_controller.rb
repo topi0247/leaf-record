@@ -64,7 +64,8 @@ class Api::V1::RecordsController < Api::V1::BasesController
 
     repo = set_repository
 
-    repo_update = repo.update_multiple_files(repository_name, record_params[:files], DateTime.now.strftime('%Y/%m/%d %H:%M:%S'))
+    # repo_update = repo.update_multiple_files(repository_name, record_params[:files], DateTime.now.strftime('%Y/%m/%d %H:%M:%S'))
+    repo_update = repo.commit_push(repository_name, DateTime.now.strftime('%Y/%m/%d %H:%M:%S'),record_params[:files])
 
     render json: repo_update, state: :ok
   end
