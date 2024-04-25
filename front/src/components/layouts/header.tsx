@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useRecoilValue } from "recoil";
+import * as Shadcn from "@/components/shadcn";
 
 const RampartOneFont = Rampart_One({
   weight: "400",
@@ -31,11 +32,16 @@ export default function Header() {
   };
 
   return (
-    <div className="container flex justify-between items-center m-auto">
-      <h1 className={`text-3xl ${RampartOneFont.className}`}>
-        <Link href="/">Leaf Record ～大草原不可避～</Link>
+    <div className="container flex justify-between items-center m-auto p-4">
+      <h1
+        className={`text-xl md:text-3xl md:flex md:justify-center ${RampartOneFont.className}`}
+      >
+        <Link href="/" className="flex flex-col">
+          Leaf Record
+          <span className="text-sm md:text-xl"> ～大草原不可避～</span>
+        </Link>
       </h1>
-      <nav>
+      <nav className="hidden md:block">
         <ul
           className={`grid ${
             user.id ? "grid-cols-2" : "grid-cols-1"
@@ -46,7 +52,7 @@ export default function Header() {
               <li>
                 <Link
                   href="/record"
-                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all"
+                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
                 >
                   {user.name}
                 </Link>
@@ -54,7 +60,7 @@ export default function Header() {
               <li>
                 <button
                   onClick={handleLogout}
-                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all"
+                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
                 >
                   ログアウト
                 </button>
@@ -63,6 +69,22 @@ export default function Header() {
           )}
         </ul>
       </nav>
+      <Shadcn.Menubar className="bg-gray-600 border-gray-600 md:hidden">
+        <Shadcn.MenubarMenu>
+          <Shadcn.MenubarTrigger className="bg-gray-600 border-gray-600 focus:bg-slate-300">
+            Menu
+          </Shadcn.MenubarTrigger>
+          <Shadcn.MenubarContent className="bg-slate-300 border-slate-300 px-3 mr-4">
+            <Shadcn.MenubarItem>
+              <Link href="/record">{user.name}</Link>
+            </Shadcn.MenubarItem>
+            <Shadcn.MenubarSeparator className="bg-slate-400" />
+            <Shadcn.MenubarItem>
+              <button onClick={handleLogout}>ログアウト</button>
+            </Shadcn.MenubarItem>
+          </Shadcn.MenubarContent>
+        </Shadcn.MenubarMenu>
+      </Shadcn.Menubar>
     </div>
   );
 }

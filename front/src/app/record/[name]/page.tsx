@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
+import * as Shadcn from "@/components/shadcn";
 
 export default function RecordPage({
   params: { name },
@@ -39,9 +40,7 @@ export default function RecordPage({
     }
 
     setAllFile(res.data.files || []);
-    if (res.data.length > 0) {
-      setCurrentFile(res.data[0]);
-    }
+    setCurrentFile(res.data.files[0] || {});
   }, [router]);
 
   useEffect(() => {
@@ -76,6 +75,7 @@ export default function RecordPage({
   };
 
   const handleSelectFile = (name: string) => {
+    console.log(name);
     const selectedFile = allFile.find((file) => file.name === name);
     if (!selectedFile || selectedFile === currentFile) {
       return;
@@ -103,16 +103,16 @@ export default function RecordPage({
     if (!newFileName) {
       return;
     }
-    currentFile.name = newFileName;
     const updateAllFile = allFile
       .map((file) => {
-        if (file.name === currentFile.name) {
-          return currentFile;
+        if (file.name === newFileName) {
+          return { ...file, name: newFileName };
         }
         return file;
       })
       .filter((file): file is IFile => file !== null);
     setAllFile(updateAllFile);
+    setCurrentFile({ ...currentFile, name: newFileName });
   };
 
   const handleDeleteFile = () => {
@@ -165,14 +165,14 @@ export default function RecordPage({
 
   return (
     <>
-      <article className="container m-auto my-8 min-h-screen h-full">
-        <div className="flex text-center">
-          <h4 className="w-1/5  text-xl">
-            <span className="w-full border-b-2 border-white pb-2 px-4">
+      <article className="md:container m-auto my-8 min-h-screen h-full">
+        <div className="container md:contain-none flex flex-col text-center gap-4">
+          <h4 className="text-xl">
+            <span className="w-full border-b-2 border-white pb-1 px-4">
               {name}
             </span>
           </h4>
-          <div className="mb-4 w-4/5 flex items-center">
+          <div className="flex items-center">
             {currentFile?.name && (
               <h3 className="text-center text-3xl w-full">
                 {currentFile?.name}
@@ -181,15 +181,17 @@ export default function RecordPage({
           </div>
         </div>
         <div className="w-full flex gap-2">
-          <section className="w-1/5 bg-blue-200 bg-opacity-20 border-2 border-blue-300 border-opacity-40 rounded p-4 my-8 sticky top-5 h-full">
-            <h3 className="text-start mb-4">記録</h3>
+          <section className="hidden md:block w-1/5 bg-blue-200 bg-opacity-20 border-2 border-blue-300 border-opacity-40 rounded p-4 my-8 sticky top-5 h-full">
+            <h3 className="text-start mb-2">記録</h3>
             <div className="ml-3 overflow-hidden">
               <form className="w-full mb-4" onSubmit={handleCreateFile}>
+                <span className="text-xs">※拡張子もつけてください</span>
                 <input
                   type="text"
                   className="rounded w-full text-black p-1 px-2 focus:outline-none"
                   onChange={(e) => setFileName(e.target.value)}
                   value={fileName}
+                  placeholder="README.md"
                 />
                 <button
                   className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
@@ -201,28 +203,24 @@ export default function RecordPage({
                 >
                   新規ファイル作成
                 </button>
-                <span className="text-xs">※拡張子もつけてください</span>
               </form>
               {allFile.length > 0 && (
                 <>
                   <hr className="my-2 border-slate-500" />
-                  <ul>
+                  <ul className="flex flex-col gap-1">
                     {allFile?.map((file, index) => (
-                      <li
-                        className="flex justify-start items-start"
-                        key={index}
-                      >
-                        <div className="flex justify-center items-start w-1/6 mt-1">
-                          <FaFile className="opacity-50 text-sm" />
-                        </div>
+                      <li key={index}>
                         <button
-                          className={`w-4/5 hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
+                          className={`w-full flex items-center hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
                             currentFile?.name === file.name &&
                             `bg-slate-400 text-slate-900`
                           }`}
                           type="button"
                           onClick={() => handleSelectFile(file.name)}
                         >
+                          <span className="w-25 h-25 mr-1">
+                            <FaFile className="opacity-50 text-sm" />
+                          </span>
                           <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
                             {file.name}
                           </span>
@@ -236,7 +234,7 @@ export default function RecordPage({
           </section>
           {currentFile?.name && (
             <>
-              <section className="my-8 rounded p-2 w-4/5 h-full">
+              <section className="md:my-8 rounded p-2 w-full md:w-4/5 h-full">
                 <div className="bg-slate-700 w-full h-full rounded">
                   <Editor
                     currentFile={currentFile}
@@ -248,35 +246,84 @@ export default function RecordPage({
           )}
         </div>
       </article>
-      <article className="fixed bottom-3 right-0 w-full">
-        <section className="text-black m-auto w-full max-w-lg">
-          <ul className="flex justify-center items-center bg-slate-300 w-full px-4 py-2 rounded">
-            <li>
+      <article className="fixed w-full bottom-10 right-0 md:w-4/5 md:bottom-12">
+        <section className="hidden text-black md:flex justify-center items-end">
+          <Shadcn.Menubar className="flex items-center py-8">
+            <Shadcn.MenubarMenu>
+              <Shadcn.MenubarTrigger
+                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
+                onClick={handleChangeFileName}
+              >
+                ファイル名変更
+              </Shadcn.MenubarTrigger>
+            </Shadcn.MenubarMenu>
+            <Shadcn.MenubarMenu>
+              <Shadcn.MenubarTrigger
+                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
+                onClick={handleDeleteFile}
+              >
+                ファイル削除
+              </Shadcn.MenubarTrigger>
+            </Shadcn.MenubarMenu>
+            <Shadcn.MenubarMenu>
+              <Shadcn.MenubarTrigger
+                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
+                onClick={handleSave}
+              >
+                コミット
+              </Shadcn.MenubarTrigger>
+            </Shadcn.MenubarMenu>
+          </Shadcn.Menubar>
+        </section>
+      </article>
+      <article className="fixed bottom-8 left-0 w-full flex justify-center items-center gap-2 md:hidden">
+        <Shadcn.Drawer>
+          <Shadcn.DrawerTrigger className="border border-slate-200 px-2 py-1 rounded">
+            ファイル操作
+          </Shadcn.DrawerTrigger>
+          <Shadcn.DrawerContent>
+            <div className="flex justify-end items-center mr-2 my-3 gap-3">
               <button
-                className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded"
+                className="bg-red-400 text-white px-2 p-1 rounded"
+                onClick={handleDeleteFile}
+              >
+                削除
+              </button>
+              <button
+                className="rounded border border-slate-300 px-2 py-1"
                 onClick={handleChangeFileName}
               >
                 ファイル名変更
               </button>
-            </li>
-            <li>
-              <button
-                className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded"
-                onClick={handleDeleteFile}
-              >
-                ファイル削除
-              </button>
-            </li>
-            <li>
-              <button
-                className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded"
-                onClick={handleSave}
-              >
-                保存
-              </button>
-            </li>
-          </ul>
-        </section>
+            </div>
+            <Shadcn.Select
+              defaultValue={currentFile.name}
+              onValueChange={handleSelectFile}
+            >
+              <Shadcn.SelectTrigger>
+                <Shadcn.SelectValue
+                  placeholder={currentFile.name || "ファイル名"}
+                />
+              </Shadcn.SelectTrigger>
+              <Shadcn.SelectContent>
+                {allFile.map((file, index) => (
+                  <Shadcn.SelectItem key={index} value={file.name}>
+                    {file.name}
+                  </Shadcn.SelectItem>
+                ))}
+              </Shadcn.SelectContent>
+            </Shadcn.Select>
+            <Shadcn.DrawerFooter>
+              <Shadcn.DrawerClose>戻る</Shadcn.DrawerClose>
+            </Shadcn.DrawerFooter>
+          </Shadcn.DrawerContent>
+        </Shadcn.Drawer>
+        <button
+          onClick={handleSave}
+          className="px-2 py-1 border border-white rounded"
+        >
+          コミット
+        </button>
       </article>
     </>
   );

@@ -15,11 +15,9 @@ export default function MainLayout({
         </header>
       )}
       <main className="flex-1 relative">{children}</main>
-      {user.id && (
-        <footer>
-          <Layout.Footer />
-        </footer>
-      )}
+      <footer>
+        <Layout.Footer />
+      </footer>
     </div>
   );
 }

@@ -32,12 +32,12 @@ export default function RecordList({
   }, [isCreateRecord]);
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2  md:grid md:grid-cols-3">
       {records.map((record, index) => (
         <li key={index}>
           <Link
             href={`record/${record.name}`}
-            className="bg-slate-300 text-black w-full px-4 py-2 rounded transition-all hover:bg-slate-400 text-xl flex flex-col"
+            className="bg-slate-300 text-black w-full px-4 py-2 rounded transition-all hover:bg-slate-700 hover:text-white text-xl flex flex-col"
           >
             <div className="flex gap-2 items-center justify-start">
               {record.private && (

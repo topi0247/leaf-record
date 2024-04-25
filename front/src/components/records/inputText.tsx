@@ -14,6 +14,9 @@ export default function InputText({
 
   const handleCreateRecord = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (validation) {
+      alert("英数字「-」「_」「.」半角スペースのみ使用可能です");
+    }
     const res = await authClient.post("/records", { repository_name: name });
     if (res.status === 500) {
       alert("エラーが発生しました");
@@ -26,6 +29,7 @@ export default function InputText({
 
     alert(res.data.message);
     setIsCreateRecord(true);
+    setName("");
   };
 
   const handleSetName = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,30 +43,30 @@ export default function InputText({
 
   return (
     <form className="flex gap-2" onSubmit={handleCreateRecord}>
-      <div className="relative">
+      <div className="relative flex flex-col gap-2">
         <input
           type="text"
           className="text-black p-2 rounded"
           onChange={handleSetName}
           value={name}
         />
-        {name && validation && (
-          <span className="absolute left-0 -bottom-7 text-xs text-red-400 text-center w-full">
-            英数字「-」「_」「.」半角スペースのみ
-          </span>
-        )}
+        <span className="text-xs text-red-400 text-center w-full">
+          英数字「 - 」「 _ 」「 . 」半角スペースのみ
+        </span>
       </div>
-      <button
-        type="submit"
-        disabled={name.length === 0}
-        className={`px-4 py-2 rounded transition-all hover:bg-gray-500 ${
-          name.length === 0
-            ? "bg-gray-500 text-gray-800"
-            : "bg-white text-black"
-        }`}
-      >
-        作成
-      </button>
+      <div>
+        <button
+          type="submit"
+          disabled={name.length === 0 || validation}
+          className={`px-4 py-2 rounded transition-all hover:bg-gray-500 ${
+            name.length === 0 || validation
+              ? "bg-gray-500 text-gray-800"
+              : "bg-white text-black"
+          }`}
+        >
+          作成
+        </button>
+      </div>
     </form>
   );
 }
