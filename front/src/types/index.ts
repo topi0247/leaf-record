@@ -8,3 +8,10 @@ export interface IFile {
   path?: string;
   content?: string;
 }
+
+export interface Record {
+  name: string;
+  description: string;
+  private: boolean;
+  created_at: string;
+}

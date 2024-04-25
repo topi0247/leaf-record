@@ -21,10 +21,12 @@ export const authClient = axios.create({
 });
 
 authClient.interceptors.request.use((config) => {
-  config.headers["access-token"] = localStorage.getItem("access-token");
-  config.headers.client = localStorage.getItem("client");
-  config.headers.uid = localStorage.getItem("uid");
-  config.headers.expiry = localStorage.getItem("expiry");
+  if (typeof window !== "undefined") {
+    config.headers["access-token"] = localStorage.getItem("access-token");
+    config.headers.client = localStorage.getItem("client");
+    config.headers.uid = localStorage.getItem("uid");
+    config.headers.expiry = localStorage.getItem("expiry");
+  }
   return config;
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/api";
-import Editor from "@/components/records";
+import { Editor } from "@/components/records";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
@@ -237,14 +237,13 @@ export default function RecordPage({
           {currentFile?.name && (
             <>
               <section className="my-8 rounded p-2 w-4/5 h-full">
-                <form className="bg-slate-700 w-full h-full rounded">
+                <div className="bg-slate-700 w-full h-full rounded">
                   <Editor
                     currentFile={currentFile}
                     setCurrentFile={setCurrentFile}
                   />
-                </form>
+                </div>
               </section>
-              <section></section>
             </>
           )}
         </div>
@@ -266,11 +265,6 @@ export default function RecordPage({
                 onClick={handleDeleteFile}
               >
                 ファイル削除
-              </button>
-            </li>
-            <li>
-              <button className="px-4 py-2 hover:bg-slate-800 transition-all hover:text-white rounded">
-                プレビュー（※未実装）
               </button>
             </li>
             <li>
