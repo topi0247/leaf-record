@@ -19,7 +19,7 @@ export default function RecordList({
         </li>
       )}
       {isLoading && (
-        <li className="w-full h-18 animate-pulse">
+        <li className="w-full h-[48px] animate-pulse">
           <div className="rounded h-full bg-slate-300 opacity-50 flex justify-center items-center">
             <p className="text-black text-center">読込中</p>
           </div>

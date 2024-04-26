@@ -29,6 +29,7 @@ class Github
   def create_repository(name)
     begin
       if @client.create_repository(name, { private: true })
+        @client.create_contents(set_repository_name(name), 'README.md', 'Initial commit', '# 記録を自由に書いてみよう！')
         { success: true, message: 'リポジトリを作成しました'}
       else
         { success: false, message: 'リポジトリの作成に失敗しました'}
@@ -74,12 +75,14 @@ class Github
     end
   end
 
-  def commit_push(repo_name, commitMessage, files)
+  def commit_push(repo_name, files, commitMessage)
     repository_name = set_repository_name(repo_name)
     branch = 'main'
 
+    begin
+
     # 現在のツリーを取得
-    base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
+    base_tree = @client.ref(repository_name, "heads/#{branch}").object
     # ベースコミットを取得
     base_commit = @client.commit(repository_name, base_tree)
 
@@ -100,6 +103,10 @@ class Github
 
     # リモートリポジトリにプッシュ
     @client.update_ref(repo, "heads/#{branch}", new_commit.sha)
+    { success: true, message: '保存が完了しました'}
+    rescue
+      { success: false, message: 'コミットに失敗しました'}
+    end
   end
 
   private
@@ -122,7 +129,8 @@ class Github
 
     contents.each do |content|
       if content.type == 'file'
-        files << { name: content.name, path: content.path, content: content.content }
+        file_contents = @client.contents(set_repository_name(repo_name), path: content.path)
+        files << { name: content.name, path: content.path, content: Base64.decode64(file_contents.content) }
       elsif content.type == 'dir'
         files << get_all_files_recursive(repo_name, content.path)
       end
