@@ -81,30 +81,31 @@ class Github
 
     begin
 
-    # 現在のツリーを取得
-    base_tree = @client.ref(repository_name, "heads/#{branch}").object
-    # ベースコミットを取得
-    base_commit = @client.commit(repository_name, base_tree)
+      # 現在のツリーを取得
+      base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
+      # ベースコミットを取得
+      base_commit = @client.commit(repository_name, base_tree)
 
-    update_files = files.map do |file|
-      {
-        path: file[:path],
-        mode: '100644', # ファイルのパーミッション、基本通常のファイルなのでこれでOK
-        type: 'blob',
-        content: file[:content]
-      }
-    end
+      update_files = files.map do |file|
+        {
+          path: file[:path],
+          mode: '100644', # ファイルのパーミッション、基本通常のファイルなのでこれでOK
+          type: 'blob',
+          content: file[:content]
+        }
+      end
 
-    # 新しいツリーを作成
-    new_tree = @client.create_tree(repository_name,update_files, base_tree: base_tree)
+      # 新しいツリーを作成
+      new_tree = @client.create_tree(repository_name,update_files, base_tree: base_tree)
 
-    # 新しいコミットを作成
-    new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_commit.sha)
+      # 新しいコミットを作成
+      new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_commit.sha)
 
-    # リモートリポジトリにプッシュ
-    @client.update_ref(repo, "heads/#{branch}", new_commit.sha)
-    { success: true, message: '保存が完了しました'}
-    rescue
+      # リモートリポジトリにプッシュ
+      @client.update_ref(repository_name, "heads/#{branch}", new_commit.sha)
+      { success: true, message: 'コミットが完了しました'}
+    rescue Octokit::Error => e
+      Rails.logger.error e
       { success: false, message: 'コミットに失敗しました'}
     end
   end

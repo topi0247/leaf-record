@@ -167,7 +167,9 @@ export default function RecordPage({
     }
 
     if (res.data.success === false) {
-      const message = res.data.message.join("\n");
+      const message = Array.isArray(res.data.message)
+        ? res.data.message.join("\n")
+        : res.data.message;
       alert(message);
       return;
     }
