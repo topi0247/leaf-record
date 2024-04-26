@@ -325,7 +325,7 @@ export default function RecordPage({
       </article>
       <article className="fixed w-full bottom-10 right-0 md:w-4/5 md:bottom-12">
         <section className="hidden text-black md:flex justify-center items-end">
-          <Shadcn.Menubar className="flex items-center py-8">
+          <Shadcn.Menubar className="flex items-center py-6">
             <Shadcn.MenubarMenu>
               <Shadcn.MenubarTrigger
                 className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
@@ -334,14 +334,15 @@ export default function RecordPage({
                 ファイル名変更
               </Shadcn.MenubarTrigger>
             </Shadcn.MenubarMenu>
-            <Shadcn.MenubarMenu>
+            {/* ファイルの削除はRails側の実装がまだなので非表示 */}
+            {/* <Shadcn.MenubarMenu>
               <Shadcn.MenubarTrigger
                 className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
                 onClick={handleDeleteFile}
               >
                 ファイル削除
               </Shadcn.MenubarTrigger>
-            </Shadcn.MenubarMenu>
+            </Shadcn.MenubarMenu> */}
             <Shadcn.MenubarMenu>
               <Shadcn.MenubarTrigger
                 className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
@@ -381,12 +382,13 @@ export default function RecordPage({
             </Shadcn.Select>
             <Shadcn.DrawerFooter>
               <div className="flex justify-end items-center mr-2 my-3 gap-2">
-                <button
+                {/* ファイル削除の処理はRails側に実装しきれていないので非表示 */}
+                {/* <button
                   className="bg-red-400 text-white px-2 p-1 rounded"
                   onClick={handleDeleteFile}
                 >
                   削除
-                </button>
+                </button> */}
                 <button
                   className="rounded border border-slate-300 px-2 py-1"
                   onClick={handleChangeFileName}
