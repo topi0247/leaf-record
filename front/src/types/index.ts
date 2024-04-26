@@ -7,6 +7,7 @@ export interface IFile {
   name: string;
   path?: string;
   content?: string;
+  is_delete: boolean;
 }
 
 export interface IRecord {

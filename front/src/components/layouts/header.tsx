@@ -32,11 +32,14 @@ export default function Header() {
   };
 
   return (
-    <div className="container flex justify-between items-center m-auto p-4">
+    <div className="container flex justify-between items-center m-auto p-2 px-4">
       <h1
         className={`text-xl md:text-3xl md:flex md:justify-center ${RampartOneFont.className}`}
       >
-        <Link href="/" className="flex flex-col">
+        <Link
+          href="/"
+          className="flex flex-col md:flex-row justify-center items-center md:gap-2"
+        >
           Leaf Record
           <span className="text-sm md:text-xl"> ～大草原不可避～</span>
         </Link>
@@ -48,25 +51,23 @@ export default function Header() {
           } justify-center items-center text-center`}
         >
           {user.id && (
-            <>
-              <li>
-                <Link
-                  href="/record"
-                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
-                >
-                  {user.name}
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
-                >
-                  ログアウト
-                </button>
-              </li>
-            </>
+            <li>
+              <Link
+                href="/record"
+                className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
+              >
+                {user.name}
+              </Link>
+            </li>
           )}
+          <li>
+            <button
+              onClick={handleLogout}
+              className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
+            >
+              ログアウト
+            </button>
+          </li>
         </ul>
       </nav>
       <Shadcn.Menubar className="bg-gray-600 border-gray-600 md:hidden">

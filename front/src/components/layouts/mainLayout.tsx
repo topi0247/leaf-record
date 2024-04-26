@@ -9,11 +9,9 @@ export default function MainLayout({
   const user = useRecoilValue(userState);
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-900 text-white">
-      {user.id && (
-        <header className="bg-gray-600 w-full">
-          <Layout.Header />
-        </header>
-      )}
+      <header className="bg-gray-600 w-full">
+        <Layout.Header />
+      </header>
       <main className="flex-1 relative">{children}</main>
       <footer>
         <Layout.Footer />

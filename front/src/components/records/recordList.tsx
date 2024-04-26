@@ -1,8 +1,6 @@
 import { IRecord } from "@/types";
 import Link from "next/link";
 import { FaLock } from "react-icons/fa";
-import { Skeleton } from "@/components/ui/skeleton";
-//import * as Shadcn from "@/components/shadcn";
 
 export default function RecordList({
   records = [],

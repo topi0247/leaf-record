@@ -3,7 +3,7 @@
 import { authClient } from "@/api";
 import { Editor } from "@/components/records";
 import { useRouter } from "next/navigation";
-import { use, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
 import * as Shadcn from "@/components/shadcn";
@@ -20,6 +20,7 @@ export default function RecordPage({
     name: "",
     path: "",
     content: "",
+    is_delete: false,
   });
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
@@ -47,8 +48,19 @@ export default function RecordPage({
         return;
       }
 
-      setAllFile(res.data.files || []);
-      setCurrentFile(res.data.files[0] || {});
+      let files = res.data.files || [];
+      if (files.length === 0) {
+        return;
+      }
+
+      files = files.map((file: IFile) => {
+        return {
+          ...file,
+          is_delete: false,
+        };
+      });
+
+      setAllFile(files);
     } catch (e) {
     } finally {
       setIsLoading(false);
@@ -70,6 +82,7 @@ export default function RecordPage({
       name: fileName,
       path: fileName,
       content: "",
+      is_delete: false,
     };
 
     const selectFile = allFile.find((file) => file.name === currentFile?.name);
@@ -87,7 +100,6 @@ export default function RecordPage({
   };
 
   const handleSelectFile = (name: string) => {
-    console.log(name);
     const selectedFile = allFile.find((file) => file.name === name);
     if (!selectedFile || selectedFile === currentFile) {
       return;
@@ -136,23 +148,29 @@ export default function RecordPage({
     if (!isDelete) {
       return;
     }
-    const updateAllFile = allFile.filter(
-      (file) => file.name !== currentFile.name
-    );
-    setAllFile(updateAllFile);
-    setCurrentFile({ name: "", path: "", content: "" });
+    const updateFile = allFile.map((file) => {
+      if (file.name === currentFile.name) {
+        return { ...file, is_delete: true };
+      }
+      return file;
+    });
+    setAllFile(updateFile);
+    setCurrentFile({ name: "", path: "", content: "", is_delete: true });
   };
 
   const handleSave = async () => {
     const updateAllFile = allFile
       .map((file) => {
         if (file.name === currentFile?.name) {
-          return currentFile;
+          return {
+            ...currentFile,
+          };
         }
-        return file;
+        return {
+          ...file,
+        };
       })
       .filter((file): file is IFile => file !== null);
-    setAllFile(updateAllFile);
 
     const res = await authClient.patch(`/records/${name}`, {
       files: updateAllFile,
@@ -194,6 +212,7 @@ export default function RecordPage({
       name: newFileName,
       path: newFileName,
       content: "",
+      is_delete: false,
     };
 
     const selectFile = allFile.find((file) => file.name === currentFile?.name);
@@ -262,25 +281,27 @@ export default function RecordPage({
                   <>
                     <hr className="my-2 border-slate-500" />
                     <ul className="flex flex-col gap-1">
-                      {allFile?.map((file, index) => (
-                        <li key={index}>
-                          <button
-                            className={`w-full flex items-center hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
-                              currentFile?.name === file.name &&
-                              `bg-slate-400 text-slate-900`
-                            }`}
-                            type="button"
-                            onClick={() => handleSelectFile(file.name)}
-                          >
-                            <span className="w-25 h-25 mr-1">
-                              <FaFile className="opacity-50 text-sm" />
-                            </span>
-                            <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
-                              {file.name}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
+                      {allFile
+                        ?.filter((file) => !file.is_delete)
+                        .map((file, index) => (
+                          <li key={index}>
+                            <button
+                              className={`w-full flex items-center hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
+                                currentFile?.name === file.name &&
+                                `bg-slate-400 text-slate-900`
+                              }`}
+                              type="button"
+                              onClick={() => handleSelectFile(file.name)}
+                            >
+                              <span className="w-25 h-25 mr-1">
+                                <FaFile className="opacity-50 text-sm" />
+                              </span>
+                              <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
+                                {file.name}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
                     </ul>
                   </>
                 )}

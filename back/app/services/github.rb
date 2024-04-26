@@ -51,36 +51,11 @@ class Github
     @remote_files
   end
 
-  def update_multiple_files(repo_name, files, commitMessage)
-    @commitMessage = commitMessage
-    get_all_files(repo_name)
-    error = []
-
-    # 既存ファイルの更新
-    exits_files = files.filter { |file| @remote_files.any? { |f| f[:name] == file[:name] } }
-    error << exist_file_update(repo_name, exits_files)
-
-    # 新規ファイルの作成
-    new_files = files.reject { |file| @remote_files.any? { |f| f[:name] == file[:name] } }
-    error << new_file_create(repo_name, new_files)
-
-    # ファイルの削除
-    delete_files = @remote_files.reject { |file| files.any? { |f| f[:name] == file[:name] } }
-    error << file_delete(repo_name, delete_files)
-
-    if error.flatten.length > 0
-      { success: false, message: error}
-    else
-      { success: true, message: '保存が完了しました' }
-    end
-  end
-
   def commit_push(repo_name, files, commitMessage)
     repository_name = set_repository_name(repo_name)
     branch = 'main'
 
     begin
-
       # 現在のツリーを取得
       base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
       # ベースコミットを取得
@@ -89,21 +64,20 @@ class Github
       update_files = files.map do |file|
         {
           path: file[:path],
-          mode: '100644', # ファイルのパーミッション、基本通常のファイルなのでこれでOK
+          mode: '100644',
           type: 'blob',
           content: file[:content]
         }
       end
 
       # 新しいツリーを作成
-      new_tree = @client.create_tree(repository_name,update_files, base_tree: base_tree)
+      new_tree = @client.create_tree(repository_name, update_files, base_tree: base_tree)
 
       # 新しいコミットを作成
       new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_commit.sha)
 
       # リモートリポジトリにプッシュ
       @client.update_ref(repository_name, "heads/#{branch}", new_commit.sha)
-      { success: true, message: 'コミットが完了しました'}
     rescue Octokit::Error => e
       Rails.logger.error e
       { success: false, message: 'コミットに失敗しました'}
@@ -172,7 +146,6 @@ class Github
     files.each do |file|
       begin
         content = file[:content] || ''  # 空の内容でも許容する
-        options = { content: content }
         @client.create_contents(set_repository_name(repo_name), file[:name], "作成 #{@commitMessage}", content)
       rescue Octokit::Error => e
         Rails.logger.error e
