@@ -3,10 +3,12 @@
 import { authClient } from "@/api";
 import { Editor } from "@/components/records";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
 import * as Shadcn from "@/components/shadcn";
+import { recordsState } from "@/recoil";
+import { useRecoilState } from "recoil";
 
 export default function RecordPage({
   params: { name },
@@ -21,26 +23,36 @@ export default function RecordPage({
   });
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
+  const [records, setRecords] = useRecoilState(recordsState);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    const res = await authClient.get(`/records/${name}`);
-    if (res.status === 500) {
-      alert("エラーが発生しました");
-      return;
-    } else if (res.status === 401) {
-      alert("ログインしてください");
-      router.push("/");
-      return;
-    }
+    try {
+      setIsLoading(true);
+      const res = await authClient.get(`/records/${name}`);
+      if (res.status === 500) {
+        alert("エラーが発生しました");
+        return;
+      } else if (res.status === 401) {
+        alert("ログインしてください");
+        router.push("/");
+        return;
+      }
 
-    if (res.data.success === false) {
-      alert(res.data.message);
-      router.push("/record");
-      return;
-    }
+      if (res.data.success === false) {
+        alert(res.data.message);
+        const currentRecord = records.filter((record) => record.name !== name);
+        setRecords(currentRecord);
+        router.push("/record");
+        return;
+      }
 
-    setAllFile(res.data.files || []);
-    setCurrentFile(res.data.files[0] || {});
+      setAllFile(res.data.files || []);
+      setCurrentFile(res.data.files[0] || {});
+    } catch (e) {
+    } finally {
+      setIsLoading(false);
+    }
   }, [router]);
 
   useEffect(() => {
@@ -214,57 +226,66 @@ export default function RecordPage({
           </div>
         </div>
         <div className="w-full flex gap-2">
-          <section className="hidden md:block w-1/5 bg-blue-200 bg-opacity-20 border-2 border-blue-300 border-opacity-40 rounded p-4 my-8 sticky top-5 h-full">
-            <h3 className="text-start mb-2">記録</h3>
-            <div className="ml-3 overflow-hidden">
-              <form className="w-full mb-4" onSubmit={handleCreateFile}>
-                <span className="text-xs">※拡張子もつけてください</span>
-                <input
-                  type="text"
-                  className="rounded w-full text-black p-1 px-2 focus:outline-none"
-                  onChange={(e) => setFileName(e.target.value)}
-                  value={fileName}
-                  placeholder="README.md"
-                />
-                <button
-                  className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
-                    fileName.length === 0
-                      ? "bg-slate-950 cursor-not-allowed"
-                      : "bg-slate-500"
-                  }`}
-                  disabled={fileName.length === 0}
-                >
-                  新規ファイル作成
-                </button>
-              </form>
-              {allFile.length > 0 && (
-                <>
-                  <hr className="my-2 border-slate-500" />
-                  <ul className="flex flex-col gap-1">
-                    {allFile?.map((file, index) => (
-                      <li key={index}>
-                        <button
-                          className={`w-full flex items-center hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
-                            currentFile?.name === file.name &&
-                            `bg-slate-400 text-slate-900`
-                          }`}
-                          type="button"
-                          onClick={() => handleSelectFile(file.name)}
-                        >
-                          <span className="w-25 h-25 mr-1">
-                            <FaFile className="opacity-50 text-sm" />
-                          </span>
-                          <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
-                            {file.name}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </section>
+          {isLoading ? (
+            <section className="hidden md:block w-1/5 border-2 border-blue-300 border-opacity-40 rounded my-8 top-5 h-[140px] animate-pulse">
+              <div className="h-full bg-blue-200 opacity-50 flex justify-center items-center">
+                <p className="text-black text-center">読込中</p>
+              </div>
+            </section>
+          ) : (
+            <section className="hidden md:block w-1/5 bg-blue-200 bg-opacity-20 border-2 border-blue-300 border-opacity-40 rounded p-4 my-8 sticky top-5 h-full">
+              <h3 className="text-start mb-2">記録</h3>
+              <div className="ml-3 overflow-hidden">
+                <form className="w-full mb-4" onSubmit={handleCreateFile}>
+                  <span className="text-xs">※拡張子もつけてください</span>
+                  <input
+                    type="text"
+                    className="rounded w-full text-black p-1 px-2 focus:outline-none"
+                    onChange={(e) => setFileName(e.target.value)}
+                    value={fileName}
+                    placeholder="README.md"
+                  />
+                  <button
+                    className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
+                      fileName.length === 0
+                        ? "bg-slate-950 cursor-not-allowed"
+                        : "bg-slate-500"
+                    }`}
+                    disabled={fileName.length === 0}
+                  >
+                    新規ファイル作成
+                  </button>
+                </form>
+                {allFile.length > 0 && (
+                  <>
+                    <hr className="my-2 border-slate-500" />
+                    <ul className="flex flex-col gap-1">
+                      {allFile?.map((file, index) => (
+                        <li key={index}>
+                          <button
+                            className={`w-full flex items-center hover:bg-slate-400 hover:text-slate-900 transition-all rounded p-1 text-left px-2 ${
+                              currentFile?.name === file.name &&
+                              `bg-slate-400 text-slate-900`
+                            }`}
+                            type="button"
+                            onClick={() => handleSelectFile(file.name)}
+                          >
+                            <span className="w-25 h-25 mr-1">
+                              <FaFile className="opacity-50 text-sm" />
+                            </span>
+                            <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
+                              {file.name}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </section>
+          )}
+
           {currentFile?.name && (
             <>
               <section className="md:my-8 rounded p-2 w-full md:w-4/5 h-full">

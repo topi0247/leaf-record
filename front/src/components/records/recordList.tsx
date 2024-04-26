@@ -1,59 +1,49 @@
-"use client";
-
-import { authClient } from "@/api";
-import { Record } from "@/types";
+import { IRecord } from "@/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { FaLock } from "react-icons/fa";
+import { Skeleton } from "@/components/ui/skeleton";
+//import * as Shadcn from "@/components/shadcn";
 
 export default function RecordList({
-  isCreateRecord,
-  setIsCreateRecord,
+  records = [],
+  isLoading,
 }: {
-  isCreateRecord: boolean;
-  setIsCreateRecord: (isCreateRecord: boolean) => void;
+  records: IRecord[];
+  isLoading: boolean;
 }) {
-  const [records, setRecords] = useState<Record[]>([]);
-
-  useEffect(() => {
-    const fetchRecords = async () => {
-      const res = await authClient.get("/records");
-
-      if (res.data.success === false) {
-        alert(res.data.message);
-        return;
-      }
-
-      setRecords(res.data);
-    };
-
-    fetchRecords();
-    setIsCreateRecord(false);
-  }, [isCreateRecord]);
-
   return (
     <ul className="flex flex-col gap-2  md:grid md:grid-cols-3">
-      {records.map((record, index) => (
-        <li key={index}>
-          <Link
-            href={`record/${record.name}`}
-            className="bg-slate-300 text-black w-full px-4 py-2 rounded transition-all hover:bg-slate-700 hover:text-white text-xl flex flex-col"
-          >
-            <div className="flex gap-2 items-center justify-start">
-              {record.private && (
+      {records.length === 0 && !isLoading && (
+        <li>
+          <p>記録がありません</p>
+        </li>
+      )}
+      {isLoading && (
+        <li className="w-full h-18 animate-pulse">
+          <div className="rounded h-full bg-slate-300 opacity-50 flex justify-center items-center">
+            <p className="text-black text-center">読込中</p>
+          </div>
+        </li>
+      )}
+      {records.length > 0 &&
+        records.map((record) => (
+          <li key={record.name}>
+            <Link
+              href={`record/${record.name}`}
+              className="bg-slate-300 text-black w-full px-4 py-2 rounded transition-all hover:bg-slate-700 hover:text-white text-xl flex flex-col h-18"
+            >
+              <div className="flex gap-2 items-center justify-start">
                 <span>
                   <FaLock />
                 </span>
-              )}
-              <span>{record.name}</span>
-            </div>
-            <span className="text-gray-500 ml-5 text-sm">
-              {record.description}
-            </span>
-            <span className="text-end text-sm">作成日 {record.created_at}</span>
-          </Link>
-        </li>
-      ))}
+                <span className="line-clamp-1">{record.name}</span>
+              </div>
+              <span className="text-end text-sm">
+                作成日 {record.created_at}
+              </span>
+            </Link>
+          </li>
+        ))}
     </ul>
   );
 }

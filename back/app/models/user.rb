@@ -23,6 +23,7 @@ class User < ApplicationRecord
     if records.find_by(repository_name: repository_name).nil?
       records.new(repository_name: repository_name)
     else
+      nil
     end
   end
 end

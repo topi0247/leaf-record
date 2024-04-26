@@ -9,7 +9,7 @@ export interface IFile {
   content?: string;
 }
 
-export interface Record {
+export interface IRecord {
   name: string;
   description: string;
   private: boolean;

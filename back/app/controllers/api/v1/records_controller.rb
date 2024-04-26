@@ -58,14 +58,14 @@ class Api::V1::RecordsController < Api::V1::BasesController
 
     # レコードのDBに保存されていないリポジトリの削除を防止
     if current_user.records.find_by(repository_name: repository_name).nil?
-      render json: { success: false, message: '記録集データがありません' }
+      render json: { success: false, message: '記録集にデータがありません' }
       return
     end
 
     repo = set_repository
 
-    # repo_update = repo.update_multiple_files(repository_name, record_params[:files], DateTime.now.strftime('%Y/%m/%d %H:%M:%S'))
-    repo_update = repo.commit_push(repository_name, DateTime.now.strftime('%Y/%m/%d %H:%M:%S'),record_params[:files])
+    repo_update = repo.update_multiple_files(repository_name, record_params[:files], DateTime.now.strftime('%Y/%m/%d %H:%M:%S'))
+    # repo_update = repo.commit_push(repository_name, DateTime.now.strftime('%Y/%m/%d %H:%M:%S'),record_params[:files])
 
     render json: repo_update, state: :ok
   end

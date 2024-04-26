@@ -38,6 +38,24 @@ export const useAuth = () => {
     window.location.href = `${BASE_API_URL}/auth/github`;
   }
 
+  // 自動ログイン
+  async function autoLogin(): Promise<boolean> {
+    const res = await authClient.get("/me");
+    if (res.status !== 200) {
+      clearStorage();
+      return false;
+    }
+
+    const data = res.data;
+    if (!data.success) {
+      clearStorage();
+      return false;
+    }
+
+    setUser({ id: data.user.id, name: data.user.name });
+    return true;
+  }
+
   // 現在ユーザーの取得
   async function currentUser({
     uid = "",
@@ -51,10 +69,7 @@ export const useAuth = () => {
     expiry?: string;
   } = {}): Promise<boolean> {
     if (uid && client && token && expiry) {
-      localStorage.setItem("access-token", token);
-      localStorage.setItem("client", client);
-      localStorage.setItem("uid", uid);
-      localStorage.setItem("expiry", expiry);
+      setStorage({ accessToken: token, client, uid, expiry });
     }
     const res = await authClient.get("/me");
     if (res.status !== 200) {
@@ -92,6 +107,18 @@ export const useAuth = () => {
     return true;
   }
 
+  const setStorage = (data: {
+    accessToken: string;
+    client: string;
+    uid: string;
+    expiry: string;
+  }) => {
+    localStorage.setItem("access-token", data.accessToken);
+    localStorage.setItem("client", data.client);
+    localStorage.setItem("uid", data.uid);
+    localStorage.setItem("expiry", data.expiry);
+  };
+
   const clearStorage = () => {
     localStorage.removeItem("access-token");
     localStorage.removeItem("client");
@@ -103,5 +130,6 @@ export const useAuth = () => {
     login,
     currentUser,
     logout,
+    autoLogin,
   };
 };

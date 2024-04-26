@@ -1,5 +1,5 @@
 import Editor from "./editor";
 import RecordList from "./recordList";
-import InputText from "./inputText";
+import CreateRecord from "./createRecord";
 
-export { Editor, RecordList, InputText };
+export { Editor, RecordList, CreateRecord };

@@ -45,6 +45,8 @@ import {
   SelectValue,
 } from "./select";
 
+import { Skeleton } from "./skeleton";
+
 export {
   Menubar,
   MenubarMenu,
@@ -81,4 +83,5 @@ export {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Skeleton,
 };
