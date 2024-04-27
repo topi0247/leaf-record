@@ -9,7 +9,7 @@ export default function Footer() {
           <Link href="/privacypolicy">プライバシーポリシー</Link>
         </li>
         <li>
-          <Link href="/">利用規約</Link>
+          <Link href="/termsofservice">利用規約</Link>
         </li>
       </ul>
     </div>

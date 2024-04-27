@@ -14,7 +14,7 @@ const RampartOneFont = Rampart_One({
 });
 
 export default function Header() {
-  const { logout } = useAuth();
+  const { login, logout } = useAuth();
   const user = useRecoilValue(userState);
   const router = useRouter();
 
@@ -50,24 +50,36 @@ export default function Header() {
             user.id ? "grid-cols-2" : "grid-cols-1"
           } justify-center items-center text-center`}
         >
-          {user.id && (
+          {user.id ? (
+            <>
+              <li>
+                <Link
+                  href="/record"
+                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
+                >
+                  {user.name}
+                </Link>
+              </li>
+
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
+                >
+                  ログアウト
+                </button>
+              </li>
+            </>
+          ) : (
             <li>
-              <Link
-                href="/record"
+              <button
+                onClick={login}
                 className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
               >
-                {user.name}
-              </Link>
+                ログイン
+              </button>
             </li>
           )}
-          <li>
-            <button
-              onClick={handleLogout}
-              className="p-4 flex justify-center items-center hover:bg-white hover:text-black transition-all rounded"
-            >
-              ログアウト
-            </button>
-          </li>
         </ul>
       </nav>
       <Shadcn.Menubar className="bg-gray-600 border-gray-600 md:hidden">
@@ -76,13 +88,21 @@ export default function Header() {
             Menu
           </Shadcn.MenubarTrigger>
           <Shadcn.MenubarContent className="bg-slate-300 border-slate-300 px-3 mr-4">
-            <Shadcn.MenubarItem>
-              <Link href="/record">{user.name}</Link>
-            </Shadcn.MenubarItem>
-            <Shadcn.MenubarSeparator className="bg-slate-400" />
-            <Shadcn.MenubarItem>
-              <button onClick={handleLogout}>ログアウト</button>
-            </Shadcn.MenubarItem>
+            {user.id ? (
+              <>
+                <Shadcn.MenubarItem>
+                  <Link href="/record">{user.name}</Link>
+                </Shadcn.MenubarItem>
+                <Shadcn.MenubarSeparator className="bg-slate-400" />
+                <Shadcn.MenubarItem>
+                  <button onClick={handleLogout}>ログアウト</button>
+                </Shadcn.MenubarItem>
+              </>
+            ) : (
+              <Shadcn.MenubarItem>
+                <button onClick={login}>ログイン</button>
+              </Shadcn.MenubarItem>
+            )}
           </Shadcn.MenubarContent>
         </Shadcn.MenubarMenu>
       </Shadcn.Menubar>
