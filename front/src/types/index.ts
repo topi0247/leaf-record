@@ -4,6 +4,7 @@ export interface IUser {
 }
 
 export interface IFile {
+  id: number;
   name: string;
   path?: string;
   old_path: string;

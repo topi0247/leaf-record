@@ -17,6 +17,7 @@ export default function RecordPage({
 }) {
   const [fileName, setFileName] = useState("");
   const [currentFile, setCurrentFile] = useState<IFile>({
+    id: -1,
     name: "",
     path: "",
     content: "",
@@ -55,9 +56,10 @@ export default function RecordPage({
         return;
       }
 
-      files = files.map((file: IFile) => {
+      files = files.map((file: IFile, index: number) => {
         return {
           ...file,
+          id: index,
           is_delete: false,
           old_path: file.path,
         };
@@ -78,12 +80,17 @@ export default function RecordPage({
 
   const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (allFile?.some((file) => file.name === fileName)) {
+    if (
+      allFile
+        ?.filter((file) => !file.is_delete)
+        .some((file) => file.name === fileName)
+    ) {
       alert("ファイル名が重複しています");
       return;
     }
 
     const newFile = {
+      id: allFile[allFile.length - 1]?.id + 1 || 0,
       name: fileName,
       path: fileName,
       content: "",
@@ -105,17 +112,19 @@ export default function RecordPage({
     setFileName("");
   };
 
-  const handleSelectFile = (name: string) => {
-    const selectedFile = allFile.find((file) => file.name === name);
-    if (!selectedFile || selectedFile === currentFile) {
+  const handleSelectFile = (id: string) => {
+    const selectedFile = allFile.find((file) => file.id === Number(id));
+    if (!selectedFile || selectedFile.id === currentFile.id) {
       return;
     }
 
     const updateAllFile = allFile
       .map((file) => {
-        if (file.name === currentFile?.name) {
+        if (file.id === currentFile.id) {
+          console.log(currentFile);
           return currentFile;
         }
+        console.log(file);
         return file;
       })
       .filter((file): file is IFile => file !== null);
@@ -133,6 +142,16 @@ export default function RecordPage({
     if (!newFileName) {
       return;
     }
+
+    if (
+      allFile
+        ?.filter((file) => !file.is_delete)
+        .some((file) => file.name === newFileName)
+    ) {
+      alert("ファイル名が重複しています");
+      return;
+    }
+
     const updateAllFile = allFile
       .map((file) => {
         if (file.name === currentFile.name) {
@@ -155,13 +174,14 @@ export default function RecordPage({
       return;
     }
     const updateFile = allFile.map((file) => {
-      if (file.name === currentFile.name) {
+      if (file.id === currentFile.id) {
         return { ...file, is_delete: true };
       }
       return file;
     });
     setAllFile(updateFile);
     setCurrentFile({
+      id: 0,
       name: "",
       path: "",
       content: "",
@@ -173,18 +193,24 @@ export default function RecordPage({
   const handleSave = async () => {
     setIsCommit(true);
     try {
-      const updateAllFile = allFile
-        .map((file) => {
-          if (file.name === currentFile?.name) {
-            return {
-              ...currentFile,
-            };
-          }
+      const updateAllFile = allFile.map((file) => {
+        if (file.id === currentFile?.id) {
           return {
-            ...file,
+            name: currentFile.name,
+            path: currentFile.path,
+            content: currentFile.content,
+            is_delete: currentFile.is_delete,
+            old_path: currentFile.old_path,
           };
-        })
-        .filter((file): file is IFile => file !== null);
+        }
+        return {
+          name: file.name,
+          path: file.path,
+          content: file.content,
+          is_delete: file.is_delete,
+          old_path: file.old_path,
+        };
+      });
 
       const res = await authClient.patch(`/records/${name}`, {
         files: updateAllFile,
@@ -228,6 +254,7 @@ export default function RecordPage({
     }
 
     const newFile = {
+      id: allFile[allFile.length - 1]?.id + 1 || 0,
       name: newFileName,
       path: newFileName,
       content: "",
@@ -311,7 +338,7 @@ export default function RecordPage({
                                 `bg-slate-400 text-slate-900`
                               }`}
                               type="button"
-                              onClick={() => handleSelectFile(file.name)}
+                              onClick={() => handleSelectFile(String(file.id))}
                             >
                               <span className="w-25 h-25 mr-1">
                                 <FaFile className="opacity-50 text-sm" />
@@ -395,7 +422,7 @@ export default function RecordPage({
                   {allFile
                     ?.filter((file) => !file.is_delete)
                     .map((file, index) => (
-                      <Shadcn.SelectItem key={index} value={file.name}>
+                      <Shadcn.SelectItem key={index} value={String(file.id)}>
                         {file.name}
                       </Shadcn.SelectItem>
                     ))}
