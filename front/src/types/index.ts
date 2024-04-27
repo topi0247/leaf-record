@@ -6,8 +6,9 @@ export interface IUser {
 export interface IFile {
   name: string;
   path?: string;
-  content?: string;
+  old_path: string;
   is_delete: boolean;
+  content?: string;
 }
 
 export interface IRecord {

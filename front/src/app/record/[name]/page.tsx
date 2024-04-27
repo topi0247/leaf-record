@@ -21,11 +21,13 @@ export default function RecordPage({
     path: "",
     content: "",
     is_delete: false,
+    old_path: "",
   });
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
   const [records, setRecords] = useRecoilState(recordsState);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCommit, setIsCommit] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,6 +59,7 @@ export default function RecordPage({
         return {
           ...file,
           is_delete: false,
+          old_path: file.path,
         };
       });
 
@@ -85,6 +88,7 @@ export default function RecordPage({
       path: fileName,
       content: "",
       is_delete: false,
+      old_path: "",
     };
 
     const selectFile = allFile.find((file) => file.name === currentFile?.name);
@@ -131,14 +135,14 @@ export default function RecordPage({
     }
     const updateAllFile = allFile
       .map((file) => {
-        if (file.name === newFileName) {
-          return { ...file, name: newFileName };
+        if (file.name === currentFile.name) {
+          return { ...file, name: newFileName, path: newFileName };
         }
         return file;
       })
       .filter((file): file is IFile => file !== null);
     setAllFile(updateAllFile);
-    setCurrentFile({ ...currentFile, name: newFileName });
+    setCurrentFile({ ...currentFile, name: newFileName, path: newFileName });
   };
 
   const handleDeleteFile = () => {
@@ -157,44 +161,57 @@ export default function RecordPage({
       return file;
     });
     setAllFile(updateFile);
-    setCurrentFile({ name: "", path: "", content: "", is_delete: true });
+    setCurrentFile({
+      name: "",
+      path: "",
+      content: "",
+      is_delete: true,
+      old_path: "",
+    });
   };
 
   const handleSave = async () => {
-    const updateAllFile = allFile
-      .map((file) => {
-        if (file.name === currentFile?.name) {
+    setIsCommit(true);
+    try {
+      const updateAllFile = allFile
+        .map((file) => {
+          if (file.name === currentFile?.name) {
+            return {
+              ...currentFile,
+            };
+          }
           return {
-            ...currentFile,
+            ...file,
           };
-        }
-        return {
-          ...file,
-        };
-      })
-      .filter((file): file is IFile => file !== null);
+        })
+        .filter((file): file is IFile => file !== null);
 
-    const res = await authClient.patch(`/records/${name}`, {
-      files: updateAllFile,
-    });
-    if (res.status === 500) {
+      const res = await authClient.patch(`/records/${name}`, {
+        files: updateAllFile,
+      });
+      if (res.status === 500) {
+        alert("エラーが発生しました");
+        return;
+      } else if (res.status === 401) {
+        alert("ログインしてください");
+        router.push("/");
+        return;
+      }
+
+      if (res.data.success === false) {
+        const message = Array.isArray(res.data.message)
+          ? res.data.message.join("\n")
+          : res.data.message;
+        alert(message);
+        return;
+      }
+
+      alert("コミットしました");
+    } catch (e) {
       alert("エラーが発生しました");
-      return;
-    } else if (res.status === 401) {
-      alert("ログインしてください");
-      router.push("/");
-      return;
+    } finally {
+      setIsCommit(false);
     }
-
-    if (res.data.success === false) {
-      const message = Array.isArray(res.data.message)
-        ? res.data.message.join("\n")
-        : res.data.message;
-      alert(message);
-      return;
-    }
-
-    alert("コミットしました");
   };
 
   const handleCreateFileSP = () => {
@@ -215,6 +232,7 @@ export default function RecordPage({
       path: newFileName,
       content: "",
       is_delete: false,
+      old_path: "",
     };
 
     const selectFile = allFile.find((file) => file.name === currentFile?.name);
@@ -336,19 +354,19 @@ export default function RecordPage({
                 ファイル名変更
               </Shadcn.MenubarTrigger>
             </Shadcn.MenubarMenu>
-            {/* ファイルの削除はRails側の実装がまだなので非表示 */}
-            {/* <Shadcn.MenubarMenu>
+            <Shadcn.MenubarMenu>
               <Shadcn.MenubarTrigger
                 className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
                 onClick={handleDeleteFile}
               >
                 ファイル削除
               </Shadcn.MenubarTrigger>
-            </Shadcn.MenubarMenu> */}
+            </Shadcn.MenubarMenu>
             <Shadcn.MenubarMenu>
               <Shadcn.MenubarTrigger
                 className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
                 onClick={handleSave}
+                disabled={isCommit}
               >
                 コミット
               </Shadcn.MenubarTrigger>
@@ -374,23 +392,24 @@ export default function RecordPage({
                   />
                 </Shadcn.SelectTrigger>
                 <Shadcn.SelectContent>
-                  {allFile.map((file, index) => (
-                    <Shadcn.SelectItem key={index} value={file.name}>
-                      {file.name}
-                    </Shadcn.SelectItem>
-                  ))}
+                  {allFile
+                    ?.filter((file) => !file.is_delete)
+                    .map((file, index) => (
+                      <Shadcn.SelectItem key={index} value={file.name}>
+                        {file.name}
+                      </Shadcn.SelectItem>
+                    ))}
                 </Shadcn.SelectContent>
               </div>
             </Shadcn.Select>
             <Shadcn.DrawerFooter>
               <div className="flex justify-end items-center mr-2 my-3 gap-2">
-                {/* ファイル削除の処理はRails側に実装しきれていないので非表示 */}
-                {/* <button
+                <button
                   className="bg-red-400 text-white px-2 p-1 rounded"
                   onClick={handleDeleteFile}
                 >
                   削除
-                </button> */}
+                </button>
                 <button
                   className="rounded border border-slate-300 px-2 py-1"
                   onClick={handleChangeFileName}

@@ -72,7 +72,7 @@ class Api::V1::RecordsController < Api::V1::BasesController
   private
 
   def record_params
-    params.permit(:id, :repository_name, files: [:name, :content, :path, :is_delete])
+    params.permit(:id, :repository_name, files: [:name, :content, :path, :is_delete, :old_path])
   end
 
   def set_repository

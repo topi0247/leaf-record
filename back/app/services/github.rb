@@ -58,23 +58,28 @@ class Github
     begin
       # 現在のツリーを取得
       base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
-      # ベースコミットを取得
-      base_commit = @client.commit(repository_name, base_tree)
 
-      update_files = files.map do |file|
-        {
-          path: file[:path],
-          mode: '100644',
-          type: 'blob',
-          content: file[:content]
-        }
-      end
+      blobs = files.map do |file|
+        if file[:is_delete]
+          # ファイルの削除
+          delete_file(file[:path])
+        elsif file[:path] == file[:old_path] || file[:old_path].empty?
+          # ファイルの新規作成と更新
+          create_or_update_file(repository_name, file)
+        else
+          # ファイル名の変更
+          # ファイル名変更のメソッドがないため、削除と新規作成を行う
+          delete_blob = delete_file(file[:old_path])
+          create_blob = create_or_update_file(repository_name, file)
+          [delete_blob, create_blob]
+        end
+      end.flatten
 
       # 新しいツリーを作成
-      new_tree = @client.create_tree(repository_name, update_files, base_tree: base_tree)
+      new_tree = @client.create_tree(repository_name, blobs, base_tree: base_tree)
 
       # 新しいコミットを作成
-      new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_commit.sha)
+      new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_tree)
 
       # リモートリポジトリにプッシュ
       @client.update_ref(repository_name, "heads/#{branch}", new_commit.sha)
@@ -175,5 +180,23 @@ class Github
       end
     end
     error
+  end
+
+  def delete_file(old_path)
+    {
+      path: old_path,
+      mode: '100644',
+      type: 'blob',
+      sha: nil
+    }
+  end
+
+  def create_or_update_file(repository_name, file)
+    {
+      path: file[:path],
+      mode: '100644',
+      type: 'blob',
+      sha: @client.create_blob(repository_name, file[:content])
+    }
   end
 end
