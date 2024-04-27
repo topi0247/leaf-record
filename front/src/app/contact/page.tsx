@@ -7,7 +7,7 @@ export default function ContactPage() {
     const ffCompose = document.getElementById("ff-compose");
     if (ffCompose) {
       ffCompose.appendChild(document.createElement("script")).src =
-        "https://formfacade.com/include/112460625306800880577/form/1FAIpQLSdjwPf0biu2LvSiRwhwylIK6q6KaSgf9QpPW_LbX8Yf0BRSfQ/classic.js?div=ff-compose";
+        process.env.NEXT_PUBLIC_GOOGLE_FORM_URL || "";
     }
   }, []);
 
