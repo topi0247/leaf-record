@@ -62,6 +62,8 @@ export default function RecordPage({
 
       setAllFile(files);
     } catch (e) {
+      alert("エラーが発生しました");
+      router.push("/");
     } finally {
       setIsLoading(false);
     }

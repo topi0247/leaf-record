@@ -29,11 +29,14 @@ export default function UserPage() {
         await currentUser({ uid, client, token, expiry }).then(
           (res) => (logged = res)
         );
-        router.push("/record");
+        if (logged) {
+          router.push("/record");
+        }
       } else {
-        await autoLogin().then((res) => {
-          if (!res) router.push("/");
-        });
+        await autoLogin().then((res) => (logged = res));
+      }
+      if (!logged) {
+        router.push("/");
       }
     } catch (e) {
       alert("エラーが発生しました");

@@ -85,11 +85,11 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <a
-              className="underline text-green-300"
+              className="underline text-green-300 text-wrap"
               href="https://marketingplatform.google.com/about/analytics/terms/jp/"
               target="_blank"
             >
-              https://marketingplatform.google.com/about/analytics/terms/jp/
+              Google アナリティクス利用規約
             </a>
           </p>
         </div>

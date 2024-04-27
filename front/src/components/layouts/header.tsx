@@ -4,7 +4,6 @@ import { userState } from "@/recoil";
 import { Rampart_One } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useRecoilValue } from "recoil";
 import * as Shadcn from "@/components/shadcn";
 
@@ -17,12 +16,6 @@ export default function Header() {
   const { login, logout } = useAuth();
   const user = useRecoilValue(userState);
   const router = useRouter();
-
-  useEffect(() => {
-    if (!user.id) {
-      router.push("/");
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     const res = await logout();

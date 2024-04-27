@@ -1,7 +1,10 @@
 "use client";
 import { useAuth } from "@/api";
+import { userState } from "@/recoil";
 import { Rampart_One } from "next/font/google";
+import { useEffect } from "react";
 import { FaGithub } from "react-icons/fa";
+import { useRecoilValue } from "recoil";
 
 const RampartOneFont = Rampart_One({
   weight: "400",
@@ -9,7 +12,19 @@ const RampartOneFont = Rampart_One({
 });
 
 export default function Home() {
-  const { login } = useAuth();
+  const { login, autoLogin } = useAuth();
+  const user = useRecoilValue(userState);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await autoLogin();
+    };
+
+    if (!user.id) {
+      fetchData();
+    }
+  }, [user]);
+
   return (
     <article className="flex flex-col gap-12 justify-center items-center m-8 md:mx-auto md:mt-16">
       <div className="justify-center flex flex-col gap-3 md:gap-6 md:justify-between items-center">
