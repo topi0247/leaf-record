@@ -17,7 +17,7 @@ export default function RecordPage({
 }) {
   const [fileName, setFileName] = useState("");
   const [currentFile, setCurrentFile] = useState<IFile>({
-    id: -1,
+    id: 0,
     name: "",
     path: "",
     content: "",
@@ -66,6 +66,7 @@ export default function RecordPage({
       });
 
       setAllFile(files);
+      setCurrentFile(files[0]);
     } catch (e) {
       alert("エラーが発生しました");
       router.push("/");
@@ -113,6 +114,7 @@ export default function RecordPage({
   };
 
   const handleSelectFile = (id: string) => {
+    console.log(id);
     const selectedFile = allFile.find((file) => file.id === Number(id));
     if (!selectedFile || selectedFile.id === currentFile.id) {
       return;
@@ -121,10 +123,8 @@ export default function RecordPage({
     const updateAllFile = allFile
       .map((file) => {
         if (file.id === currentFile.id) {
-          console.log(currentFile);
           return currentFile;
         }
-        console.log(file);
         return file;
       })
       .filter((file): file is IFile => file !== null);
@@ -407,10 +407,7 @@ export default function RecordPage({
             ファイル操作
           </Shadcn.DrawerTrigger>
           <Shadcn.DrawerContent>
-            <Shadcn.Select
-              defaultValue={currentFile.name}
-              onValueChange={handleSelectFile}
-            >
+            <Shadcn.Select onValueChange={handleSelectFile}>
               <div className="flex flex-col px-3 w-full justify-center items-center">
                 <span className="text-end w-full text-xs">ファイル選択</span>
                 <Shadcn.SelectTrigger className="w-full">
