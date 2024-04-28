@@ -37,6 +37,15 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    url: process.env.NEXT_PUBLIC_APP_URL,
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/ogp.png`,
+        width: 1200,
+        height: 630,
+        alt: APP_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary",
