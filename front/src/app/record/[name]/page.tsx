@@ -6,10 +6,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
-import * as Shadcn from "@/components/shadcn";
 import { recordsState } from "@/recoil";
 import { useRecoilState } from "recoil";
-import { all } from "axios";
 
 export default function RecordPage({
   params: { name },
@@ -82,10 +80,26 @@ export default function RecordPage({
 
   const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(fileName)) {
+      alert("ファイル名に使用できない文字が含まれています");
+      return;
+    }
+
+    const fileExtension = fileName.includes(".")
+      ? fileName.split(".").pop()
+      : "";
+    const newFileName = fileName.includes(".")
+      ? fileName.split(".").shift() + "."
+      : fileName;
+    const newFilePath = `${newFileName}${
+      fileExtension === "" ? ".md" : fileExtension
+    }`;
+
     if (
       allFile
         ?.filter((file) => !file.is_delete)
-        .some((file) => file.name === fileName)
+        .some((file) => file.path === newFilePath)
     ) {
       alert("ファイル名が重複しています");
       return;
@@ -93,8 +107,8 @@ export default function RecordPage({
 
     const newFile = {
       id: allFile[allFile.length - 1]?.id + 1 || 0,
-      name: fileName,
-      path: fileName,
+      name: newFilePath,
+      path: newFilePath,
       content: "",
       is_delete: false,
       old_path: "",
@@ -305,13 +319,12 @@ export default function RecordPage({
               <h3 className="text-start mb-2">記録</h3>
               <div className="ml-3 overflow-hidden">
                 <form className="w-full mb-4" onSubmit={handleCreateFile}>
-                  <span className="text-xs">※拡張子もつけてください</span>
                   <input
                     type="text"
                     className="rounded w-full text-black p-1 px-2 focus:outline-none"
                     onChange={(e) => setFileName(e.target.value)}
                     value={fileName}
-                    placeholder="README.md"
+                    placeholder="README"
                   />
                   <button
                     className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
