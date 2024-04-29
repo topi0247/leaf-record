@@ -1,12 +1,11 @@
 "use client";
 
 import { authClient } from "@/api";
-import { Editor } from "@/components/records";
+import { Editor, FixedButtonPC, FixedButtonSP } from "@/components/records";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
-import * as Shadcn from "@/components/shadcn";
 import { recordsState } from "@/recoil";
 import { useRecoilState } from "recoil";
 
@@ -17,7 +16,7 @@ export default function RecordPage({
 }) {
   const [fileName, setFileName] = useState("");
   const [currentFile, setCurrentFile] = useState<IFile>({
-    id: -1,
+    id: 0,
     name: "",
     path: "",
     content: "",
@@ -29,6 +28,7 @@ export default function RecordPage({
   const [records, setRecords] = useRecoilState(recordsState);
   const [isLoading, setIsLoading] = useState(true);
   const [isCommit, setIsCommit] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -66,6 +66,7 @@ export default function RecordPage({
       });
 
       setAllFile(files);
+      setCurrentFile(files[0]);
     } catch (e) {
       alert("エラーが発生しました");
       router.push("/");
@@ -78,21 +79,51 @@ export default function RecordPage({
     fetchData();
   }, [fetchData]);
 
-  const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const validateFileName = (fileName: string) => {
+    if (!/^[a-zA-Z0-9_.-]+$/.test(fileName)) {
+      alert("ファイル名に使用できない文字が含まれています");
+      return true;
+    }
+
+    const newFilePath = newFileNamePath(fileName);
+
     if (
       allFile
         ?.filter((file) => !file.is_delete)
-        .some((file) => file.name === fileName)
+        .some((file) => file.path === newFilePath)
     ) {
       alert("ファイル名が重複しています");
+      return true;
+    }
+
+    return false;
+  };
+
+  const newFileNamePath = (fileName: string) => {
+    const fileExtension = fileName.includes(".")
+      ? fileName.split(".").pop()
+      : "";
+    const newFileName = fileName.includes(".")
+      ? fileName.split(".").shift() + "."
+      : fileName;
+    const newFilePath = `${newFileName}${
+      fileExtension === "" ? ".md" : fileExtension
+    }`;
+    return newFilePath;
+  };
+
+  const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!fileName || validateFileName(fileName)) {
       return;
     }
 
+    const newFilePath = newFileNamePath(fileName);
+
     const newFile = {
       id: allFile[allFile.length - 1]?.id + 1 || 0,
-      name: fileName,
-      path: fileName,
+      name: newFilePath,
+      path: newFilePath,
       content: "",
       is_delete: false,
       old_path: "",
@@ -112,6 +143,44 @@ export default function RecordPage({
     setFileName("");
   };
 
+  const handleCreateFileSP = () => {
+    let newFileName = prompt(
+      "新しいファイル名を入力してください\n※拡張子もつけてください"
+    );
+    if (!newFileName) {
+      return;
+    }
+
+    if (!newFileName || validateFileName(newFileName)) {
+      return;
+    }
+
+    const newFilePath = newFileNamePath(newFileName);
+
+    const newFile = {
+      id: allFile[allFile.length - 1]?.id + 1 || 0,
+      name: newFilePath,
+      path: newFilePath,
+      content: "",
+      is_delete: false,
+      old_path: "",
+    };
+
+    const selectFile = allFile.find((file) => file.name === currentFile?.name);
+    let updateAllFile = allFile.map((file) => {
+      if (file.name === selectFile?.name) {
+        return currentFile;
+      }
+      return file;
+    });
+    updateAllFile.push(newFile);
+
+    setAllFile(updateAllFile);
+    setCurrentFile(newFile);
+    setFileName("");
+    setIsDrawerOpen(false);
+  };
+
   const handleSelectFile = (id: string) => {
     const selectedFile = allFile.find((file) => file.id === Number(id));
     if (!selectedFile || selectedFile.id === currentFile.id) {
@@ -121,16 +190,15 @@ export default function RecordPage({
     const updateAllFile = allFile
       .map((file) => {
         if (file.id === currentFile.id) {
-          console.log(currentFile);
           return currentFile;
         }
-        console.log(file);
         return file;
       })
       .filter((file): file is IFile => file !== null);
 
     setAllFile(updateAllFile);
     setCurrentFile(selectedFile);
+    setIsDrawerOpen(false);
   };
 
   const handleChangeFileName = () => {
@@ -139,29 +207,24 @@ export default function RecordPage({
       return;
     }
     const newFileName = prompt("新しいファイル名を入力してください");
-    if (!newFileName) {
+
+    if (!newFileName || validateFileName(newFileName)) {
       return;
     }
 
-    if (
-      allFile
-        ?.filter((file) => !file.is_delete)
-        .some((file) => file.name === newFileName)
-    ) {
-      alert("ファイル名が重複しています");
-      return;
-    }
+    const newFilePath = newFileNamePath(newFileName);
 
     const updateAllFile = allFile
       .map((file) => {
         if (file.name === currentFile.name) {
-          return { ...file, name: newFileName, path: newFileName };
+          return { ...file, name: newFilePath, path: newFilePath };
         }
         return file;
       })
       .filter((file): file is IFile => file !== null);
     setAllFile(updateAllFile);
-    setCurrentFile({ ...currentFile, name: newFileName, path: newFileName });
+    setCurrentFile({ ...currentFile, name: newFilePath, path: newFilePath });
+    setIsDrawerOpen(false);
   };
 
   const handleDeleteFile = () => {
@@ -240,42 +303,6 @@ export default function RecordPage({
     }
   };
 
-  const handleCreateFileSP = () => {
-    const newFileName = prompt(
-      "新しいファイル名を入力してください\n※拡張子もつけてください"
-    );
-    if (!newFileName) {
-      return;
-    }
-
-    if (allFile?.some((file) => file.name === newFileName)) {
-      alert("ファイル名が重複しています");
-      return;
-    }
-
-    const newFile = {
-      id: allFile[allFile.length - 1]?.id + 1 || 0,
-      name: newFileName,
-      path: newFileName,
-      content: "",
-      is_delete: false,
-      old_path: "",
-    };
-
-    const selectFile = allFile.find((file) => file.name === currentFile?.name);
-    let updateAllFile = allFile.map((file) => {
-      if (file.name === selectFile?.name) {
-        return currentFile;
-      }
-      return file;
-    });
-    updateAllFile.push(newFile);
-
-    setAllFile(updateAllFile);
-    setCurrentFile(newFile);
-    setFileName("");
-  };
-
   return (
     <>
       <article className="md:container m-auto my-8 min-h-screen h-full">
@@ -305,13 +332,12 @@ export default function RecordPage({
               <h3 className="text-start mb-2">記録</h3>
               <div className="ml-3 overflow-hidden">
                 <form className="w-full mb-4" onSubmit={handleCreateFile}>
-                  <span className="text-xs">※拡張子もつけてください</span>
                   <input
                     type="text"
                     className="rounded w-full text-black p-1 px-2 focus:outline-none"
                     onChange={(e) => setFileName(e.target.value)}
                     value={fileName}
-                    placeholder="README.md"
+                    placeholder="README"
                   />
                   <button
                     className={`text-sm text-center block m-auto w-full tracking-widest my-1 py-1 rounded hover:bg-slate-950 transition-all hover:text-white ${
@@ -356,111 +382,36 @@ export default function RecordPage({
             </section>
           )}
 
-          {currentFile?.name && (
-            <>
-              <section className="md:my-8 rounded p-2 w-full md:w-4/5 h-full">
-                <div className="bg-slate-700 w-full h-full rounded">
-                  <Editor
-                    currentFile={currentFile}
-                    setCurrentFile={setCurrentFile}
-                  />
-                </div>
-              </section>
-            </>
-          )}
+          <section className="md:my-8 rounded p-2 w-full md:w-4/5 h-full">
+            <div className="bg-slate-700 w-full h-full rounded">
+              <Editor
+                currentFile={currentFile}
+                setCurrentFile={setCurrentFile}
+                isLoading={isLoading}
+              />
+            </div>
+          </section>
         </div>
       </article>
-      <article className="fixed w-full bottom-10 right-0 md:w-4/5 md:bottom-12">
-        <section className="hidden text-black md:flex justify-center items-end">
-          <Shadcn.Menubar className="flex items-center py-6">
-            <Shadcn.MenubarMenu>
-              <Shadcn.MenubarTrigger
-                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
-                onClick={handleChangeFileName}
-              >
-                ファイル名変更
-              </Shadcn.MenubarTrigger>
-            </Shadcn.MenubarMenu>
-            <Shadcn.MenubarMenu>
-              <Shadcn.MenubarTrigger
-                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
-                onClick={handleDeleteFile}
-              >
-                ファイル削除
-              </Shadcn.MenubarTrigger>
-            </Shadcn.MenubarMenu>
-            <Shadcn.MenubarMenu>
-              <Shadcn.MenubarTrigger
-                className="cursor-pointer hover:bg-slate-700 hover:text-white transition-all"
-                onClick={handleSave}
-                disabled={isCommit}
-              >
-                コミット
-              </Shadcn.MenubarTrigger>
-            </Shadcn.MenubarMenu>
-          </Shadcn.Menubar>
-        </section>
-      </article>
-      <article className="fixed bottom-8 left-0 w-full flex justify-center items-center gap-2 md:hidden">
-        <Shadcn.Drawer>
-          <Shadcn.DrawerTrigger className="border border-slate-200 px-2 py-1 rounded">
-            ファイル操作
-          </Shadcn.DrawerTrigger>
-          <Shadcn.DrawerContent>
-            <Shadcn.Select
-              defaultValue={currentFile.name}
-              onValueChange={handleSelectFile}
-            >
-              <div className="flex flex-col px-3 w-full justify-center items-center">
-                <span className="text-end w-full text-xs">ファイル選択</span>
-                <Shadcn.SelectTrigger className="w-full">
-                  <Shadcn.SelectValue
-                    placeholder={currentFile.name || "ファイル名"}
-                  />
-                </Shadcn.SelectTrigger>
-                <Shadcn.SelectContent>
-                  {allFile
-                    ?.filter((file) => !file.is_delete)
-                    .map((file, index) => (
-                      <Shadcn.SelectItem key={index} value={String(file.id)}>
-                        {file.name}
-                      </Shadcn.SelectItem>
-                    ))}
-                </Shadcn.SelectContent>
-              </div>
-            </Shadcn.Select>
-            <Shadcn.DrawerFooter>
-              <div className="flex justify-end items-center mr-2 my-3 gap-2">
-                <button
-                  className="bg-red-400 text-white px-2 p-1 rounded"
-                  onClick={handleDeleteFile}
-                >
-                  削除
-                </button>
-                <button
-                  className="rounded border border-slate-300 px-2 py-1"
-                  onClick={handleChangeFileName}
-                >
-                  ファイル名変更
-                </button>
-                <button
-                  className="rounded border border-slate-300 px-2 py-1"
-                  onClick={handleCreateFileSP}
-                >
-                  新規作成
-                </button>
-              </div>
-              <Shadcn.DrawerClose>戻る</Shadcn.DrawerClose>
-            </Shadcn.DrawerFooter>
-          </Shadcn.DrawerContent>
-        </Shadcn.Drawer>
-        <button
-          onClick={handleSave}
-          className="px-2 py-1 border border-white rounded"
-        >
-          コミット
-        </button>
-      </article>
+
+      <FixedButtonPC
+        handleChangeFileName={handleChangeFileName}
+        handleDeleteFile={handleDeleteFile}
+        handleSave={handleSave}
+        isCommit={isCommit}
+      />
+      <FixedButtonSP
+        handleSelectFile={handleSelectFile}
+        handleDeleteFile={handleDeleteFile}
+        handleCreateFileSP={handleCreateFileSP}
+        handleChangeFileName={handleChangeFileName}
+        handleSave={handleSave}
+        currentFile={currentFile}
+        allFile={allFile}
+        isCommit={isCommit}
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+      />
     </>
   );
 }

@@ -11,16 +11,16 @@ export default function RecordList({
 }) {
   return (
     <ul className="flex flex-col gap-2  md:grid md:grid-cols-3">
-      {records.length === 0 && !isLoading && (
-        <li>
-          <p>記録がありません</p>
-        </li>
-      )}
       {isLoading && (
         <li className="w-full h-[48px] animate-pulse">
           <div className="rounded h-full bg-slate-300 opacity-50 flex justify-center items-center">
             <p className="text-black text-center">読込中</p>
           </div>
+        </li>
+      )}
+      {records.length === 0 && !isLoading && (
+        <li>
+          <p>記録がありません</p>
         </li>
       )}
       {records.length > 0 &&

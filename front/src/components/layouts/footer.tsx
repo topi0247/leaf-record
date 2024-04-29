@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <div className="mt-8 mb-2">
-      <ul className="flex flex-col md:flex-row items-end mr-2 md:m-auto justify-center md:items-center text-xs gap-2">
+      <ul className="flex flex-col md:flex-row items-start ml-2 md:m-auto justify-center md:items-center text-xs gap-2">
         <li>©2024 Leaf Record</li>
         <li>
           <Link href="/privacypolicy">プライバシーポリシー</Link>
