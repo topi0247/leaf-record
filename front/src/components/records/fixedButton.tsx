@@ -53,6 +53,8 @@ export function FixedButtonSP({
   currentFile,
   allFile,
   isCommit,
+  isDrawerOpen,
+  setIsDrawerOpen,
 }: {
   handleSelectFile: (value: string) => void;
   handleDeleteFile: () => void;
@@ -62,10 +64,16 @@ export function FixedButtonSP({
   currentFile: { name: string };
   allFile: { id: number; name: string; is_delete: boolean }[];
   isCommit: boolean;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: (isDrawerOpen: boolean) => void;
 }) {
   return (
     <article className="fixed bottom-12 right-0 w-full flex justify-end items-center gap-1 md:hidden mx-2">
-      <Shadcn.Drawer>
+      <Shadcn.Drawer
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      >
         <Shadcn.DrawerTrigger className="border border-slate-200 px-2 py-1 rounded">
           ファイル操作
         </Shadcn.DrawerTrigger>

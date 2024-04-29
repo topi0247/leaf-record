@@ -28,6 +28,7 @@ export default function RecordPage({
   const [records, setRecords] = useRecoilState(recordsState);
   const [isLoading, setIsLoading] = useState(true);
   const [isCommit, setIsCommit] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -78,14 +79,27 @@ export default function RecordPage({
     fetchData();
   }, [fetchData]);
 
-  const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const validateFileName = (fileName: string) => {
     if (!/^[a-zA-Z0-9_.-]+$/.test(fileName)) {
       alert("ファイル名に使用できない文字が含まれています");
-      return;
+      return true;
     }
 
+    const newFilePath = newFileNamePath(fileName);
+
+    if (
+      allFile
+        ?.filter((file) => !file.is_delete)
+        .some((file) => file.path === newFilePath)
+    ) {
+      alert("ファイル名が重複しています");
+      return true;
+    }
+
+    return false;
+  };
+
+  const newFileNamePath = (fileName: string) => {
     const fileExtension = fileName.includes(".")
       ? fileName.split(".").pop()
       : "";
@@ -95,15 +109,16 @@ export default function RecordPage({
     const newFilePath = `${newFileName}${
       fileExtension === "" ? ".md" : fileExtension
     }`;
+    return newFilePath;
+  };
 
-    if (
-      allFile
-        ?.filter((file) => !file.is_delete)
-        .some((file) => file.path === newFilePath)
-    ) {
-      alert("ファイル名が重複しています");
+  const handleCreateFile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!fileName || validateFileName(fileName)) {
       return;
     }
+
+    const newFilePath = newFileNamePath(fileName);
 
     const newFile = {
       id: allFile[allFile.length - 1]?.id + 1 || 0,
@@ -136,29 +151,11 @@ export default function RecordPage({
       return;
     }
 
-    if (!/^[a-zA-Z0-9_.-]+$/.test(newFileName)) {
-      alert("ファイル名に使用できない文字が含まれています");
+    if (!newFileName || validateFileName(newFileName)) {
       return;
     }
 
-    const fileExtension = newFileName.includes(".")
-      ? newFileName.split(".").pop()
-      : "";
-    newFileName = newFileName.includes(".")
-      ? newFileName.split(".").shift() + "."
-      : newFileName;
-    const newFilePath = `${newFileName}${
-      fileExtension === "" ? ".md" : fileExtension
-    }`;
-
-    if (
-      allFile
-        ?.filter((file) => !file.is_delete)
-        .some((file) => file.path === newFilePath)
-    ) {
-      alert("ファイル名が重複しています");
-      return;
-    }
+    const newFilePath = newFileNamePath(newFileName);
 
     const newFile = {
       id: allFile[allFile.length - 1]?.id + 1 || 0,
@@ -181,6 +178,7 @@ export default function RecordPage({
     setAllFile(updateAllFile);
     setCurrentFile(newFile);
     setFileName("");
+    setIsDrawerOpen(false);
   };
 
   const handleSelectFile = (id: string) => {
@@ -200,6 +198,7 @@ export default function RecordPage({
 
     setAllFile(updateAllFile);
     setCurrentFile(selectedFile);
+    setIsDrawerOpen(false);
   };
 
   const handleChangeFileName = () => {
@@ -208,29 +207,24 @@ export default function RecordPage({
       return;
     }
     const newFileName = prompt("新しいファイル名を入力してください");
-    if (!newFileName) {
+
+    if (!newFileName || validateFileName(newFileName)) {
       return;
     }
 
-    if (
-      allFile
-        ?.filter((file) => !file.is_delete)
-        .some((file) => file.name === newFileName)
-    ) {
-      alert("ファイル名が重複しています");
-      return;
-    }
+    const newFilePath = newFileNamePath(newFileName);
 
     const updateAllFile = allFile
       .map((file) => {
         if (file.name === currentFile.name) {
-          return { ...file, name: newFileName, path: newFileName };
+          return { ...file, name: newFilePath, path: newFilePath };
         }
         return file;
       })
       .filter((file): file is IFile => file !== null);
     setAllFile(updateAllFile);
-    setCurrentFile({ ...currentFile, name: newFileName, path: newFileName });
+    setCurrentFile({ ...currentFile, name: newFilePath, path: newFilePath });
+    setIsDrawerOpen(false);
   };
 
   const handleDeleteFile = () => {
@@ -415,6 +409,8 @@ export default function RecordPage({
         currentFile={currentFile}
         allFile={allFile}
         isCommit={isCommit}
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
       />
     </>
   );
