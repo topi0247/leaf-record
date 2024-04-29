@@ -2,6 +2,7 @@
 import { useAuth } from "@/api";
 import { userState } from "@/recoil";
 import { Rampart_One } from "next/font/google";
+import Link from "next/link";
 import { useEffect } from "react";
 import { FaGithub } from "react-icons/fa";
 import { useRecoilValue } from "recoil";
@@ -60,13 +61,22 @@ export default function Home() {
           </span>
         </h3>
         <div className="m-auto">
-          <button
-            onClick={login}
-            className="flex justify-center items-center gap-1 p-4 bg-gray-700 text-white rounded hover:bg-gray-600 transition-all"
-          >
-            <FaGithub className="text-xl" />
-            GitHubでログインする
-          </button>
+          {user.id ? (
+            <Link
+              href="/record"
+              className="flex justify-center items-center gap-1 p-4 bg-gray-700 text-white rounded hover:bg-gray-600 transition-all"
+            >
+              <span className="text-green-300">草</span>を生やしに行く
+            </Link>
+          ) : (
+            <button
+              onClick={login}
+              className="flex justify-center items-center gap-1 p-4 bg-gray-700 text-white rounded hover:bg-gray-600 transition-all"
+            >
+              <FaGithub className="text-xl" />
+              GitHubでログインする
+            </button>
+          )}
         </div>
         <div className="text-start text-sm">
           <p>

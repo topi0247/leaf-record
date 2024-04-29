@@ -24,7 +24,6 @@ export default function UserPage() {
     const expiry = queryParams.get("expiry");
     let logged = false;
     try {
-      setIsLoading(true);
       if (uid && client && token && expiry) {
         await currentUser({ uid, client, token, expiry }).then(
           (res) => (logged = res)
@@ -41,13 +40,14 @@ export default function UserPage() {
     } catch (e) {
       alert("エラーが発生しました");
       router.push("/");
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
   const fetchRecords = useCallback(async () => {
-    if (records.length > 0) return;
+    if (records.length > 0) {
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       const res = await authClient.get("/records");
@@ -74,7 +74,6 @@ export default function UserPage() {
 
   useEffect(() => {
     fetchRecords();
-    setIsLoading(false);
   }, [fetchRecords]);
 
   return (
