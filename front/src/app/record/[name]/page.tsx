@@ -128,6 +128,61 @@ export default function RecordPage({
     setFileName("");
   };
 
+  const handleCreateFileSP = () => {
+    let newFileName = prompt(
+      "新しいファイル名を入力してください\n※拡張子もつけてください"
+    );
+    if (!newFileName) {
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(newFileName)) {
+      alert("ファイル名に使用できない文字が含まれています");
+      return;
+    }
+
+    const fileExtension = newFileName.includes(".")
+      ? newFileName.split(".").pop()
+      : "";
+    newFileName = newFileName.includes(".")
+      ? newFileName.split(".").shift() + "."
+      : newFileName;
+    const newFilePath = `${newFileName}${
+      fileExtension === "" ? ".md" : fileExtension
+    }`;
+
+    if (
+      allFile
+        ?.filter((file) => !file.is_delete)
+        .some((file) => file.path === newFilePath)
+    ) {
+      alert("ファイル名が重複しています");
+      return;
+    }
+
+    const newFile = {
+      id: allFile[allFile.length - 1]?.id + 1 || 0,
+      name: newFilePath,
+      path: newFilePath,
+      content: "",
+      is_delete: false,
+      old_path: "",
+    };
+
+    const selectFile = allFile.find((file) => file.name === currentFile?.name);
+    let updateAllFile = allFile.map((file) => {
+      if (file.name === selectFile?.name) {
+        return currentFile;
+      }
+      return file;
+    });
+    updateAllFile.push(newFile);
+
+    setAllFile(updateAllFile);
+    setCurrentFile(newFile);
+    setFileName("");
+  };
+
   const handleSelectFile = (id: string) => {
     const selectedFile = allFile.find((file) => file.id === Number(id));
     if (!selectedFile || selectedFile.id === currentFile.id) {
@@ -252,42 +307,6 @@ export default function RecordPage({
     } finally {
       setIsCommit(false);
     }
-  };
-
-  const handleCreateFileSP = () => {
-    const newFileName = prompt(
-      "新しいファイル名を入力してください\n※拡張子もつけてください"
-    );
-    if (!newFileName) {
-      return;
-    }
-
-    if (allFile?.some((file) => file.name === newFileName)) {
-      alert("ファイル名が重複しています");
-      return;
-    }
-
-    const newFile = {
-      id: allFile[allFile.length - 1]?.id + 1 || 0,
-      name: newFileName,
-      path: newFileName,
-      content: "",
-      is_delete: false,
-      old_path: "",
-    };
-
-    const selectFile = allFile.find((file) => file.name === currentFile?.name);
-    let updateAllFile = allFile.map((file) => {
-      if (file.name === selectFile?.name) {
-        return currentFile;
-      }
-      return file;
-    });
-    updateAllFile.push(newFile);
-
-    setAllFile(updateAllFile);
-    setCurrentFile(newFile);
-    setFileName("");
   };
 
   return (

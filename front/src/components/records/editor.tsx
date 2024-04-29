@@ -44,7 +44,7 @@ const Editor = ({
         <textarea
           ref={textAreaRef}
           rows={rows}
-          className="w-full bg-transparent p-4 focus:outline-none resize-none overflow-hidden rounded resize-x-none"
+          className="w-full bg-transparent p-4 focus:outline-none resize-none overflow-x-hidden rounded resize-x-none"
           value={currentFile?.content ? currentFile.content : ""}
           onChange={handleUpdateContent}
           placeholder="ここに記録を書けるよ！"
