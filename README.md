@@ -54,5 +54,5 @@ PWA対応しているので、ネイティブアプリっぽくも使えます�
 <br/>
 
 # その他
-Qiitaに記事を書きました。
+Qiitaに記事を書きました。<br/>
 [【個人開発】メモ帳感覚で使えるGitHub草生やしアプリ「Leaf Record ～大草原不可避～」を作りました【Next.js×Rails】](https://qiita.com/topi_log/items/d362fefb9e006773eac0)
