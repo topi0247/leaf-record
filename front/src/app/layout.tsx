@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_APP_URL,
     images: [
       {
-        url: "ogp.png",
+        url: `${process.env.NEXT_PUBLIC_URL}/ogp.png`,
         width: 1200,
         height: 630,
         alt: APP_NAME,
