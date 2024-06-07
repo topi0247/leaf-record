@@ -62,7 +62,7 @@ class Github
       blobs = files.map do |file|
         if file[:is_delete]
           # ファイルの削除
-          delete_file(file[:path])
+          delete_file(file[:old_path])
         elsif file[:path] == file[:old_path] || file[:old_path].empty?
           # ファイルの新規作成と更新
           create_or_update_file(repository_name, file)
