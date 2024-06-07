@@ -244,12 +244,12 @@ export default function RecordPage({
     });
     setAllFile(updateFile);
     setCurrentFile({
-      id: 0,
-      name: "",
-      path: "",
-      content: "",
-      is_delete: true,
-      old_path: "",
+      id: updateFile[0]?.id || 0,
+      name: updateFile[0]?.name || "",
+      path: updateFile[0]?.path || "",
+      content: updateFile[0]?.content || "",
+      is_delete: updateFile[0]?.is_delete || false,
+      old_path: updateFile[0]?.old_path || "",
     });
   };
 
