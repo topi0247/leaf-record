@@ -90,6 +90,28 @@ export default function Home() {
           </ul>
         </div>
       </section>
+      <section className="flex flex-col gap-5">
+        <p className="text-center">
+          え？記録をシェアしたい？
+          <br />
+          日記として使いたい？
+          <br />
+          面白い色んな機能がほしい？
+          <br />
+          そんなあなたにオススメなのは
+        </p>
+        <h3 className="text-center text-xl my-4">
+          <a
+            href="https://chiikusa-diary.fly.dev"
+            target="_blank"
+            className="border-b-2 border-green-400 px-4 pb-1 rounded text-green-400"
+          >
+            ちいくさ日記
+          </a>
+        </h3>
+        <p className="text-center">↑リンクから触ってみよう！</p>
+        <p>※外部アプリです。開発者・管理者が異なります。</p>
+      </section>
     </article>
   );
 }
