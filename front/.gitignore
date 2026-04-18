@@ -38,3 +38,7 @@ next-env.d.ts
 
 public/sw.*
 public/workbox-*
+
+# test artifacts
+playwright-report/
+test-results/
