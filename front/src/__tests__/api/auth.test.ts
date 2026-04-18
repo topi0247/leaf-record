@@ -18,12 +18,12 @@ vi.mock('axios', async () => {
   }
 })
 
-describe('authClient interceptor', () => {
+describe('authClientインターセプター', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('adds auth headers from localStorage to requests', () => {
+  it('localStorageの値をリクエストヘッダーに付加する', () => {
     localStorage.setItem('access-token', 'test-token')
     localStorage.setItem('client', 'test-client')
     localStorage.setItem('uid', 'test-uid')
@@ -46,7 +46,7 @@ describe('authClient interceptor', () => {
     expect(result.headers['expiry']).toBe('9999999999')
   })
 
-  it('returns null for headers when localStorage is empty', () => {
+  it('localStorageが空の場合ヘッダーにnullを返す', () => {
     const config = { headers: {} as Record<string, string | null> }
     const applyInterceptor = (cfg: typeof config) => {
       cfg.headers['access-token'] = localStorage.getItem('access-token')
