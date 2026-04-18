@@ -87,7 +87,7 @@ test.describe('認証済みページ', () => {
       await setAuthStorage(page)
       await page.goto('/record/test-repo')
       await expect(page.getByText('test-repo')).toBeVisible()
-      await expect(page.getByText('README.md')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'README.md' })).toBeVisible()
     })
 
     test('リポジトリが存在しない場合は記録一覧に戻る', async ({ page }) => {
