@@ -12,43 +12,43 @@ RSpec.describe Github do
   subject(:github) { described_class.new(user) }
 
   describe '#repository_exists?' do
-    context 'when repository exists' do
+    context 'リポジトリが存在する場合' do
       before { allow(octokit_client).to receive(:repository).and_return(double('repo')) }
 
-      it 'returns true' do
+      it 'trueを返す' do
         expect(github.repository_exists?('myrepo')).to be true
       end
     end
 
-    context 'when repository does not exist' do
+    context 'リポジトリが存在しない場合' do
       before { allow(octokit_client).to receive(:repository).and_raise(Octokit::NotFound) }
 
-      it 'returns false' do
+      it 'falseを返す' do
         expect(github.repository_exists?('myrepo')).to be false
       end
     end
   end
 
   describe '#create_repository' do
-    context 'when creation succeeds' do
+    context '作成が成功した場合' do
       before do
         allow(octokit_client).to receive(:create_repository).and_return(double('repo', truthy: true))
         allow(octokit_client).to receive(:create_contents)
       end
 
-      it 'returns success' do
+      it 'successを返す' do
         result = github.create_repository('newrepo')
         expect(result[:success]).to be true
       end
     end
 
-    context 'when name already exists' do
+    context 'リポジトリ名が既に存在する場合' do
       before do
         allow(octokit_client).to receive(:create_repository)
           .and_raise(Octokit::Error.new({ status: 422, body: { message: 'name already exists on this account' } }))
       end
 
-      it 'returns a descriptive error' do
+      it 'エラーメッセージを含む失敗を返す' do
         result = github.create_repository('existingrepo')
         expect(result[:success]).to be false
         expect(result[:message]).to include('リポジトリ名が既に存在')
@@ -71,7 +71,7 @@ RSpec.describe Github do
 
     let(:files) { [{ path: 'README.md', old_path: 'README.md', content: '# Hello', is_delete: false }] }
 
-    it 'creates a blob, tree, commit and updates ref' do
+    it 'blob・tree・commitを作成してrefを更新する' do
       github.commit_push('myrepo', files, '2024/01/01 00:00:00')
       expect(octokit_client).to have_received(:create_blob)
       expect(octokit_client).to have_received(:create_tree)
@@ -79,19 +79,19 @@ RSpec.describe Github do
       expect(octokit_client).to have_received(:update_ref)
     end
 
-    context 'when deleting a file' do
+    context 'ファイルを削除する場合' do
       let(:files) { [{ path: 'old.md', old_path: 'old.md', content: '', is_delete: true }] }
 
-      it 'does not create a blob for the deleted file' do
+      it '削除ファイルのblobを作成しない' do
         github.commit_push('myrepo', files, '2024/01/01 00:00:00')
         expect(octokit_client).not_to have_received(:create_blob)
       end
     end
 
-    context 'when renaming a file' do
+    context 'ファイルをリネームする場合' do
       let(:files) { [{ path: 'new.md', old_path: 'old.md', content: '# Renamed', is_delete: false }] }
 
-      it 'creates a blob for the new file and marks the old path for deletion' do
+      it '新しいファイルのblobを作成し、旧パスを削除対象にする' do
         github.commit_push('myrepo', files, '2024/01/01 00:00:00')
         expect(octokit_client).to have_received(:create_blob).once
         expect(octokit_client).to have_received(:create_tree) do |_repo, blobs, _opts|
@@ -101,10 +101,10 @@ RSpec.describe Github do
       end
     end
 
-    context 'when GitHub API raises an error' do
+    context 'GitHub APIがエラーを返した場合' do
       before { allow(octokit_client).to receive(:ref).and_raise(Octokit::Error) }
 
-      it 'returns failure' do
+      it '失敗を返す' do
         result = github.commit_push('myrepo', files, '2024/01/01 00:00:00')
         expect(result[:success]).to be false
       end

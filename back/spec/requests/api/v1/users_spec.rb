@@ -2,10 +2,10 @@ require 'rails_helper'
 
 RSpec.describe 'Api::V1::Users', type: :request do
   describe 'GET /api/v1/me' do
-    context 'when authenticated' do
+    context '認証済みの場合' do
       let(:user) { create(:user) }
 
-      it 'returns the current user' do
+      it '現在のユーザー情報を返す' do
         get '/api/v1/me', headers: auth_headers(user)
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
@@ -14,8 +14,8 @@ RSpec.describe 'Api::V1::Users', type: :request do
       end
     end
 
-    context 'when not authenticated' do
-      it 'returns success: false' do
+    context '未認証の場合' do
+      it 'success: falseを返す' do
         get '/api/v1/me'
         json = JSON.parse(response.body)
         expect(json['success']).to be false

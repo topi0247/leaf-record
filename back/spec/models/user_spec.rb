@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  describe 'associations' do
+  describe 'アソシエーション' do
     it { is_expected.to have_many(:records).dependent(:destroy) }
   end
 
@@ -14,12 +14,12 @@ RSpec.describe User, type: :model do
       )
     end
 
-    context 'when user does not exist' do
-      it 'creates a new user' do
+    context 'ユーザーが存在しない場合' do
+      it '新しいユーザーを作成する' do
         expect { User.from_omniauth(auth) }.to change(User, :count).by(1)
       end
 
-      it 'sets the correct attributes' do
+      it '正しい属性を設定する' do
         user = User.from_omniauth(auth)
         expect(user.uid).to eq('uid_123')
         expect(user.name).to eq('testuser')
@@ -27,10 +27,10 @@ RSpec.describe User, type: :model do
       end
     end
 
-    context 'when user already exists' do
+    context 'ユーザーが既に存在する場合' do
       before { create(:user, uid: 'uid_123', provider: 'github') }
 
-      it 'does not create a duplicate' do
+      it '重複して作成しない' do
         expect { User.from_omniauth(auth) }.not_to change(User, :count)
       end
     end
@@ -39,18 +39,18 @@ RSpec.describe User, type: :model do
   describe '#new_record' do
     let(:user) { create(:user) }
 
-    context 'when repository_name is not taken' do
-      it 'returns a new Record instance' do
+    context 'repository_nameが未使用の場合' do
+      it '新しいRecordインスタンスを返す' do
         record = user.new_record('new-repo')
         expect(record).to be_a(Record)
         expect(record).not_to be_persisted
       end
     end
 
-    context 'when repository_name is already taken' do
+    context 'repository_nameが既に使用されている場合' do
       before { create(:record, user: user, repository_name: 'existing-repo') }
 
-      it 'returns nil' do
+      it 'nilを返す' do
         expect(user.new_record('existing-repo')).to be_nil
       end
     end
