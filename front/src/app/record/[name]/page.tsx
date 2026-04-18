@@ -3,16 +3,17 @@
 import { authClient } from "@/api";
 import { Editor, FixedButtonPC, FixedButtonSP } from "@/components/records";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
 import { useRecordsState } from "@/store";
 
 export default function RecordPage({
-  params: { name },
+  params,
 }: {
-  params: { name: string };
+  params: Promise<{ name: string }>;
 }) {
+  const { name } = use(params);
   const [fileName, setFileName] = useState("");
   const [currentFile, setCurrentFile] = useState<IFile>({
     id: 0,
