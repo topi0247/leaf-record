@@ -1,10 +1,9 @@
 "use client";
 import { useAuth } from "@/api";
-import { userState } from "@/recoil";
+import { useUserState } from "@/store";
 import { Rampart_One } from "next/font/google";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRecoilValue } from "recoil";
 import * as Shadcn from "@/components/shadcn";
 
 const RampartOneFont = Rampart_One({
@@ -14,7 +13,7 @@ const RampartOneFont = Rampart_One({
 
 export default function Header() {
   const { login, logout } = useAuth();
-  const user = useRecoilValue(userState);
+  const user = useUserState();
   const router = useRouter();
 
   const handleLogout = async () => {

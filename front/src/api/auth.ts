@@ -1,6 +1,5 @@
-import { userState } from "@/recoil";
+import { useSetUserState } from "@/store";
 import axios from "axios";
-import { useSetRecoilState } from "recoil";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION;
@@ -31,7 +30,7 @@ authClient.interceptors.request.use((config) => {
 });
 
 export const useAuth = () => {
-  const setUser = useSetRecoilState(userState);
+  const setUser = useSetUserState();
 
   // GitHubでログイン
   async function login(): Promise<void> {

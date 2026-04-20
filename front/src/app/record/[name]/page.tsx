@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
 import { IFile } from "@/types";
-import { recordsState } from "@/recoil";
-import { useRecoilState } from "recoil";
+import { useRecordsState } from "@/store";
 
 export default function RecordPage({
   params: { name },
@@ -25,7 +24,7 @@ export default function RecordPage({
   });
   const [allFile, setAllFile] = useState<IFile[]>([]);
   const router = useRouter();
-  const [records, setRecords] = useRecoilState(recordsState);
+  const [records, setRecords] = useRecordsState();
   const [isLoading, setIsLoading] = useState(true);
   const [isCommit, setIsCommit] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
