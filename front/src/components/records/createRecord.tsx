@@ -1,9 +1,8 @@
 "use client";
 import { authClient } from "@/api";
-import { recordsState } from "@/recoil";
+import { useRecordsState } from "@/store";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useRecoilState } from "recoil";
 
 export default function CreateRecord({
   isLoading,
@@ -15,7 +14,7 @@ export default function CreateRecord({
   const [recordName, setRecordName] = useState("");
   const [validation, setValidation] = useState(false);
   const router = useRouter();
-  const [records, setRecords] = useRecoilState(recordsState);
+  const [records, setRecords] = useRecordsState();
 
   const handleCreateRecord = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

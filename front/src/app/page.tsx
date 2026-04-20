@@ -1,11 +1,10 @@
 "use client";
 import { useAuth } from "@/api";
-import { userState } from "@/recoil";
+import { useUserState } from "@/store";
 import { Rampart_One } from "next/font/google";
 import Link from "next/link";
 import { useEffect } from "react";
 import { FaGithub } from "react-icons/fa";
-import { useRecoilValue } from "recoil";
 
 const RampartOneFont = Rampart_One({
   weight: "400",
@@ -14,7 +13,7 @@ const RampartOneFont = Rampart_One({
 
 export default function Home() {
   const { login, autoLogin } = useAuth();
-  const user = useRecoilValue(userState);
+  const user = useUserState();
 
   useEffect(() => {
     const fetchData = async () => {

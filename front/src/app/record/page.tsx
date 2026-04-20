@@ -1,17 +1,16 @@
 "use client";
 import { authClient, useAuth } from "@/api";
 import { CreateRecord, RecordList } from "@/components/records";
-import { recordsState, userState } from "@/recoil";
+import { useUserState, useRecordsState } from "@/store";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import * as Shadcn from "@/components/shadcn";
 
 export default function UserPage() {
-  const user = useRecoilValue(userState);
+  const user = useUserState();
   const { currentUser, autoLogin } = useAuth();
   const router = useRouter();
-  const [records, setRecords] = useRecoilState(recordsState);
+  const [records, setRecords] = useRecordsState();
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = useCallback(async () => {
