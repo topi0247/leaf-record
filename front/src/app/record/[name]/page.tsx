@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/api";
+import { authFetch } from "@/api";
 import { Editor, FixedButtonPC, FixedButtonSP } from "@/components/records";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
@@ -33,7 +33,7 @@ export default function RecordPage({
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await authClient.get(`/records/${name}`);
+      const res = await authFetch(`/records/${name}`);
       if (res.status === 500) {
         alert("エラーが発生しました");
         return;
@@ -43,25 +43,26 @@ export default function RecordPage({
         return;
       }
 
-      if (res.data.success === false) {
-        alert(res.data.message);
+      const fetchData = res.data as { success: boolean; message: string; files: IFile[] };
+      if (fetchData.success === false) {
+        alert(fetchData.message);
         const currentRecord = records.filter((record) => record.name !== name);
         setRecords(currentRecord);
         router.push("/record");
         return;
       }
 
-      let files = res.data.files || [];
+      let files = fetchData.files || [];
       if (files.length === 0) {
         return;
       }
 
-      files = files.map((file: IFile, index: number) => {
+      files = files.map((file, index) => {
         return {
           ...file,
           id: index,
           is_delete: false,
-          old_path: file.path,
+          old_path: file.path ?? "",
         };
       });
 
@@ -275,8 +276,9 @@ export default function RecordPage({
         };
       });
 
-      const res = await authClient.patch(`/records/${name}`, {
-        files: updateAllFile,
+      const res = await authFetch(`/records/${name}`, {
+        method: "PATCH",
+        body: JSON.stringify({ files: updateAllFile }),
       });
       if (res.status === 500) {
         alert("エラーが発生しました");
@@ -287,10 +289,11 @@ export default function RecordPage({
         return;
       }
 
-      if (res.data.success === false) {
-        const message = Array.isArray(res.data.message)
-          ? res.data.message.join("\n")
-          : res.data.message;
+      const saveData = res.data as { success: boolean; message: string | string[] };
+      if (saveData.success === false) {
+        const message = Array.isArray(saveData.message)
+          ? saveData.message.join("\n")
+          : saveData.message;
         alert(message);
         return;
       }

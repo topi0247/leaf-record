@@ -1,7 +1,8 @@
 "use client";
-import { authClient, useAuth } from "@/api";
+import { authFetch, useAuth } from "@/api";
 import { CreateRecord, RecordList } from "@/components/records";
 import { useUserState, useRecordsState } from "@/store";
+import type { IRecord } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import * as Shadcn from "@/components/shadcn";
@@ -49,17 +50,18 @@ export default function UserPage() {
     }
     try {
       setIsLoading(true);
-      const res = await authClient.get("/records");
+      const res = await authFetch("/records");
       if (res.status !== 200) {
         alert("エラーが発生しました");
         return;
       }
 
-      if (res.data.length === 0) {
+      const data = res.data as IRecord[];
+      if (data.length === 0) {
         setRecords([]);
         return;
       }
-      setRecords(res.data);
+      setRecords(data);
     } catch (e) {
       alert("エラーが発生しました");
     } finally {
