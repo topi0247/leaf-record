@@ -12,15 +12,6 @@ const mockAuthRoutes = async (page: import('@playwright/test').Page) => {
   )
 }
 
-const setAuthStorage = async (page: import('@playwright/test').Page) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('access-token', 'test-token')
-    localStorage.setItem('client', 'test-client')
-    localStorage.setItem('uid', 'test-uid')
-    localStorage.setItem('expiry', '9999999999')
-  })
-}
-
 test.describe('認証済みページ', () => {
   test.describe('記録一覧 (/record)', () => {
     test('ログイン済みユーザーが記録一覧ページを表示できる', async ({ page }) => {
@@ -35,7 +26,6 @@ test.describe('認証済みページ', () => {
           ]),
         })
       )
-      await setAuthStorage(page)
       await page.goto('/record')
       await expect(page).toHaveURL('/record')
       await expect(page.getByText('記録集一覧')).toBeVisible()
@@ -50,7 +40,6 @@ test.describe('認証済みページ', () => {
           body: JSON.stringify([]),
         })
       )
-      await setAuthStorage(page)
       await page.goto('/record')
       await expect(page).toHaveURL('/record')
       await expect(page.getByText('記録集一覧')).toBeVisible()
@@ -84,7 +73,6 @@ test.describe('認証済みページ', () => {
           }),
         })
       )
-      await setAuthStorage(page)
       await page.goto('/record/test-repo')
       await expect(page.getByText('test-repo')).toBeVisible()
       await expect(page.getByRole('button', { name: 'README.md' })).toBeVisible()
@@ -106,7 +94,6 @@ test.describe('認証済みページ', () => {
           body: JSON.stringify([]),
         })
       )
-      await setAuthStorage(page)
       await page.goto('/record/missing-repo')
       await expect(page).toHaveURL('/record')
     })
