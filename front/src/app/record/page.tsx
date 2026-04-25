@@ -9,34 +9,16 @@ import * as Shadcn from "@/components/shadcn";
 
 export default function UserPage() {
   const user = useUserState();
-  const { currentUser, autoLogin } = useAuth();
+  const { autoLogin } = useAuth();
   const router = useRouter();
   const [records, setRecords] = useRecordsState();
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = useCallback(async () => {
     if (user.id) return;
-
-    const queryParams = new URLSearchParams(window.location.search);
-    const uid = queryParams.get("uid");
-    const client = queryParams.get("client");
-    const token = queryParams.get("token");
-    const expiry = queryParams.get("expiry");
-    let logged = false;
     try {
-      if (uid && client && token && expiry) {
-        await currentUser({ uid, client, token, expiry }).then(
-          (res) => (logged = res)
-        );
-        if (logged) {
-          router.push("/record");
-        }
-      } else {
-        await autoLogin().then((res) => (logged = res));
-      }
-      if (!logged) {
-        router.push("/");
-      }
+      const logged = await autoLogin();
+      if (!logged) router.push("/");
     } catch (e) {
       alert("エラーが発生しました");
       router.push("/");
