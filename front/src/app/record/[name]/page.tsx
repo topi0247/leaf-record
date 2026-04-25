@@ -5,7 +5,7 @@ import { Editor, FixedButtonPC, FixedButtonSP } from "@/components/records";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
-import { IFile } from "@/types";
+import { IFile, RecordFilesResponse, RecordMutationResponse } from "@/types";
 import { useRecordsState } from "@/store";
 
 export default function RecordPage({
@@ -33,7 +33,7 @@ export default function RecordPage({
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await authFetch(`/records/${name}`);
+      const res = await authFetch<RecordFilesResponse>(`/records/${name}`);
       if (res.status === 500) {
         alert("エラーが発生しました");
         return;
@@ -43,16 +43,15 @@ export default function RecordPage({
         return;
       }
 
-      const fetchData = res.data as { success: boolean; message: string; files: IFile[] };
-      if (fetchData.success === false) {
-        alert(fetchData.message);
+      if (res.data.success === false) {
+        alert(res.data.message);
         const currentRecord = records.filter((record) => record.name !== name);
         setRecords(currentRecord);
         router.push("/record");
         return;
       }
 
-      let files = fetchData.files || [];
+      let files = res.data.files || [];
       if (files.length === 0) {
         return;
       }
@@ -276,7 +275,7 @@ export default function RecordPage({
         };
       });
 
-      const res = await authFetch(`/records/${name}`, {
+      const res = await authFetch<RecordMutationResponse>(`/records/${name}`, {
         method: "PATCH",
         body: JSON.stringify({ files: updateAllFile }),
       });
@@ -289,11 +288,10 @@ export default function RecordPage({
         return;
       }
 
-      const saveData = res.data as { success: boolean; message: string | string[] };
-      if (saveData.success === false) {
-        const message = Array.isArray(saveData.message)
-          ? saveData.message.join("\n")
-          : saveData.message;
+      if (res.data.success === false) {
+        const message = Array.isArray(res.data.message)
+          ? res.data.message.join("\n")
+          : res.data.message;
         alert(message);
         return;
       }

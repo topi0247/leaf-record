@@ -50,18 +50,17 @@ export default function UserPage() {
     }
     try {
       setIsLoading(true);
-      const res = await authFetch("/records");
+      const res = await authFetch<IRecord[]>("/records");
       if (res.status !== 200) {
         alert("エラーが発生しました");
         return;
       }
 
-      const data = res.data as IRecord[];
-      if (data.length === 0) {
+      if (res.data.length === 0) {
         setRecords([]);
         return;
       }
-      setRecords(data);
+      setRecords(res.data);
     } catch (e) {
       alert("エラーが発生しました");
     } finally {

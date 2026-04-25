@@ -4,6 +4,15 @@ const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION;
 const API_URL = `${BASE_API_URL}/api/${API_VERSION}`;
 
+interface FetchOptions extends Omit<RequestInit, "headers"> {
+  headers?: Record<string, string>;
+}
+
+interface AuthResponse {
+  success: boolean;
+  user: { id: number; name: string };
+}
+
 function getAuthHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
   const headers: Record<string, string> = {};
@@ -18,31 +27,31 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
-export async function authFetch(
+export async function authFetch<T>(
   path: string,
-  options: RequestInit = {}
-): Promise<{ status: number; data: unknown }> {
+  options: FetchOptions = {}
+): Promise<{ status: number; data: T }> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(),
-      ...(options.headers as Record<string, string>),
+      ...options.headers,
     },
   });
   const data = await res.json().catch(() => null);
   return { status: res.status, data };
 }
 
-async function baseFetch(
+async function baseFetch<T>(
   path: string,
-  options: RequestInit = {}
-): Promise<{ status: number; data: unknown }> {
+  options: FetchOptions = {}
+): Promise<{ status: number; data: T }> {
   const res = await fetch(`${BASE_API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers as Record<string, string>),
+      ...options.headers,
     },
   });
   const data = await res.json().catch(() => null);
@@ -57,17 +66,16 @@ export const useAuth = () => {
   }
 
   async function autoLogin(): Promise<boolean> {
-    const res = await authFetch("/me");
+    const res = await authFetch<AuthResponse>("/me");
     if (res.status !== 200) {
       clearStorage();
       return false;
     }
-    const data = res.data as { success: boolean; user: { id: number; name: string } };
-    if (!data.success) {
+    if (!res.data.success) {
       clearStorage();
       return false;
     }
-    setUser({ id: data.user.id, name: data.user.name });
+    setUser({ id: res.data.user.id, name: res.data.user.name });
     return true;
   }
 
@@ -85,22 +93,21 @@ export const useAuth = () => {
     if (uid && client && token && expiry) {
       setStorage({ accessToken: token, client, uid, expiry });
     }
-    const res = await authFetch("/me");
+    const res = await authFetch<AuthResponse>("/me");
     if (res.status !== 200) {
       clearStorage();
       return false;
     }
-    const data = res.data as { success: boolean; user: { id: number; name: string } };
-    if (!data.success) {
+    if (!res.data.success) {
       clearStorage();
       return false;
     }
-    setUser({ id: data.user.id, name: data.user.name });
+    setUser({ id: res.data.user.id, name: res.data.user.name });
     return true;
   }
 
   async function logout(): Promise<boolean> {
-    const res = await baseFetch("/auth/sign_out", {
+    const res = await baseFetch<null>("/auth/sign_out", {
       method: "DELETE",
       headers: {
         "access-token": localStorage.getItem("access-token") ?? "",

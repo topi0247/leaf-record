@@ -1,6 +1,7 @@
 "use client";
 import { authFetch } from "@/api";
 import { useRecordsState } from "@/store";
+import type { CreateRecordResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -24,7 +25,7 @@ export default function CreateRecord({
     }
     try {
       setIsLoading(true);
-      const res = await authFetch("/records", {
+      const res = await authFetch<CreateRecordResponse>("/records", {
         method: "POST",
         body: JSON.stringify({ repository_name: recordName }),
       });
@@ -38,9 +39,8 @@ export default function CreateRecord({
         return;
       }
 
-      const data = res.data as { success: boolean; message: string };
-      alert(data.message);
-      if (!data.success) return;
+      alert(res.data.message);
+      if (!res.data.success) return;
 
       setRecordName("");
 
