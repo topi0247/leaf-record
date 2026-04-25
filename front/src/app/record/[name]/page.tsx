@@ -335,7 +335,7 @@ export default function RecordPage({
                 <form className="w-full mb-4" onSubmit={handleCreateFile}>
                   <input
                     type="text"
-                    className="rounded w-full text-black p-1 px-2 focus:outline-none"
+                    className="rounded w-full bg-white text-black p-1 px-2 focus:outline-none"
                     onChange={(e) => setFileName(e.target.value)}
                     value={fileName}
                     placeholder="README"

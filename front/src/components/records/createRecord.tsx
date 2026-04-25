@@ -86,7 +86,7 @@ export default function CreateRecord({
       <div className="relative flex flex-col gap-2">
         <input
           type="text"
-          className="text-black p-2 rounded"
+          className="bg-white text-black p-2 rounded"
           onChange={handleSetName}
           value={recordName}
         />
