@@ -1,7 +1,8 @@
 "use client";
-import { authClient, useAuth } from "@/api";
+import { authFetch, useAuth } from "@/api";
 import { CreateRecord, RecordList } from "@/components/records";
 import { useUserState, useRecordsState } from "@/store";
+import type { IRecord } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import * as Shadcn from "@/components/shadcn";
@@ -49,7 +50,7 @@ export default function UserPage() {
     }
     try {
       setIsLoading(true);
-      const res = await authClient.get("/records");
+      const res = await authFetch<IRecord[]>("/records");
       if (res.status !== 200) {
         alert("エラーが発生しました");
         return;

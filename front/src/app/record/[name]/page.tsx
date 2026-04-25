@@ -1,11 +1,11 @@
 "use client";
 
-import { authClient } from "@/api";
+import { authFetch } from "@/api";
 import { Editor, FixedButtonPC, FixedButtonSP } from "@/components/records";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useState } from "react";
 import { FaFile } from "react-icons/fa";
-import { IFile } from "@/types";
+import { IFile, RecordFilesResponse, RecordMutationResponse } from "@/types";
 import { useRecordsState } from "@/store";
 
 export default function RecordPage({
@@ -33,7 +33,7 @@ export default function RecordPage({
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await authClient.get(`/records/${name}`);
+      const res = await authFetch<RecordFilesResponse>(`/records/${name}`);
       if (res.status === 500) {
         alert("エラーが発生しました");
         return;
@@ -56,12 +56,12 @@ export default function RecordPage({
         return;
       }
 
-      files = files.map((file: IFile, index: number) => {
+      files = files.map((file, index) => {
         return {
           ...file,
           id: index,
           is_delete: false,
-          old_path: file.path,
+          old_path: file.path ?? "",
         };
       });
 
@@ -275,8 +275,9 @@ export default function RecordPage({
         };
       });
 
-      const res = await authClient.patch(`/records/${name}`, {
-        files: updateAllFile,
+      const res = await authFetch<RecordMutationResponse>(`/records/${name}`, {
+        method: "PATCH",
+        body: JSON.stringify({ files: updateAllFile }),
       });
       if (res.status === 500) {
         alert("エラーが発生しました");

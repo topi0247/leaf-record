@@ -1,6 +1,7 @@
 "use client";
-import { authClient } from "@/api";
+import { authFetch } from "@/api";
 import { useRecordsState } from "@/store";
+import type { CreateRecordResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -24,8 +25,9 @@ export default function CreateRecord({
     }
     try {
       setIsLoading(true);
-      const res = await authClient.post("/records", {
-        repository_name: recordName,
+      const res = await authFetch<CreateRecordResponse>("/records", {
+        method: "POST",
+        body: JSON.stringify({ repository_name: recordName }),
       });
       await new Promise((resolve) => setTimeout(resolve, 2000));
       if (res.status === 500) {

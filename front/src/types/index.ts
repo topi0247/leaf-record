@@ -18,3 +18,19 @@ export interface IRecord {
   private: boolean;
   created_at: string;
 }
+
+export interface RecordFilesResponse {
+  success: boolean;
+  message: string;
+  files: IFile[];
+}
+
+export interface RecordMutationResponse {
+  success: boolean;
+  message: string | string[];
+}
+
+export interface CreateRecordResponse {
+  success: boolean;
+  message: string;
+}
