@@ -1,6 +1,10 @@
 class Auth::OmniauthCallbacksController < DeviseTokenAuth::OmniauthCallbacksController
   skip_before_action :set_auth_headers_from_cookies
 
+  # API-only mode does not include flash, so no-op to prevent NameError
+  def set_flash_message(key, kind, options = {}); end
+  alias_method :set_flash_message!, :set_flash_message
+
   def redirect_callbacks
     user = User.from_omniauth(request.env['omniauth.auth'])
 

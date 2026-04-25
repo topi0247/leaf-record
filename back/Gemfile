@@ -64,7 +64,5 @@ gem 'omniauth-github'
 gem "omniauth-rails_csrf_protection"
 # GitHubAPI用
 gem "octokit"
-# フロントとバックを分けているので同じサイト判定させるためのgem
-gem 'rails_same_site_cookie'
 # envを使うためのGem
 gem 'dotenv-rails'
