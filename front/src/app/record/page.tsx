@@ -65,7 +65,6 @@ export default function UserPage() {
         <CreateRecord isLoading={isLoading} setIsLoading={setIsLoading} />
       </section>
       <hr className="my-4 border-slate-500 md:hidden" />
-      <Shadcn.Skeleton className="w-full rounded h-18" />
       <section className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">記録集一覧</h2>
         <RecordList records={records} isLoading={isLoading} />
