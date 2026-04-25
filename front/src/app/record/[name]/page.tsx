@@ -367,7 +367,7 @@ export default function RecordPage({
                               type="button"
                               onClick={() => handleSelectFile(String(file.id))}
                             >
-                              <span className="w-25 h-25 mr-1">
+                              <span className="mr-1">
                                 <FaFile className="opacity-50 text-sm" />
                               </span>
                               <span className="line-clamp-1 hover:line-clamp-none break-words text-start transition">
