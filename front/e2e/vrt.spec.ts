@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
 const mockAuth = async (page: import('@playwright/test').Page) => {
-  await page.route(`${API_URL}/api/v1/me`, (route) =>
+  await page.route('**/api/v1/me', (route) =>
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -13,6 +11,8 @@ const mockAuth = async (page: import('@playwright/test').Page) => {
 }
 
 test.describe('VRT', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
   test('ホームページ', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
@@ -33,24 +33,24 @@ test.describe('VRT', () => {
 
   test('記録一覧（記録あり）', async ({ page }) => {
     await mockAuth(page)
-    await page.route(`${API_URL}/api/v1/records`, (route) =>
+    await page.route('**/api/v1/records', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
-          { id: 1, repository_name: 'test-repo-1' },
-          { id: 2, repository_name: 'test-repo-2' },
+          { name: 'test-repo-1', description: '', private: true, created_at: '2024-01-01' },
+          { name: 'test-repo-2', description: '', private: true, created_at: '2024-01-01' },
         ]),
       })
     )
     await page.goto('/record')
-    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('test-repo-1')).toBeVisible()
     await expect(page).toHaveScreenshot('record-list.png')
   })
 
   test('記録一覧（記録なし）', async ({ page }) => {
     await mockAuth(page)
-    await page.route(`${API_URL}/api/v1/records`, (route) =>
+    await page.route('**/api/v1/records', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -58,13 +58,13 @@ test.describe('VRT', () => {
       })
     )
     await page.goto('/record')
-    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('記録がありません')).toBeVisible()
     await expect(page).toHaveScreenshot('record-list-empty.png')
   })
 
   test('エディタ（ファイルあり）', async ({ page }) => {
     await mockAuth(page)
-    await page.route(`${API_URL}/api/v1/records/test-repo`, (route) =>
+    await page.route('**/api/v1/records/test-repo', (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -75,7 +75,7 @@ test.describe('VRT', () => {
       })
     )
     await page.goto('/record/test-repo')
-    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('heading', { name: 'README.md' })).toBeVisible()
     await expect(page).toHaveScreenshot('editor.png')
   })
 })

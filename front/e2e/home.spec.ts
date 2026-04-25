@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('公開ページ', () => {
-  test('ホームページが表示されログインボタンが存在する', async ({ page }) => {
+  test('ホームページが表示されログインボタンが存在する', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'ログインボタンはモバイルでは折りたたみメニュー内')
     await page.goto('/')
     await expect(page).toHaveTitle(/leaf record/i)
     const loginButton = page.getByRole('button', { name: /github/i })
