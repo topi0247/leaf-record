@@ -1,4 +1,5 @@
 class Auth::OmniauthCallbacksController < DeviseTokenAuth::OmniauthCallbacksController
+  skip_before_action :set_auth_headers_from_cookies
 
   def redirect_callbacks
     user = User.from_omniauth(request.env['omniauth.auth'])
