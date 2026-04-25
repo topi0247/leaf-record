@@ -38,11 +38,17 @@ docker compose exec back bundle exec rails db:schema:load           # テストD
 ```bash
 docker compose exec front yarn dev        # 開発サーバー（ポート8000）
 docker compose exec front yarn build
+docker compose exec front yarn typecheck  # 型チェック（TypeScript 7 系 tsgo）
+docker compose exec front yarn typecheck:tsc  # 型チェック（従来の tsc。比較用）
 docker compose exec front yarn test       # Vitest（単体テスト）
 docker compose exec front yarn test:watch
 docker compose exec front yarn test:e2e  # Playwright（E2E）
 docker compose exec front yarn lint
 ```
+
+`front` は `./front:/app` でマウントするため、**初回・依存更新後**はホストかコンテナのどちらかで `yarn install` 済みであること（`node_modules` 必須）。初回だけ例: `docker compose run --rm --no-deps front yarn install`。
+
+`typescript` は **6 系**（`tsc`・エディタ・Next/ESLint の前提）。高速型チェックの **tsgo** は `devDependencies` の `@typescript/native-preview` が供し、`yarn typecheck` で使う。`resolutions` で入れ子依存も TypeScript 6 に揃えている。
 
 ## Git ワークフロー
 
