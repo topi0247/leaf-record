@@ -323,13 +323,13 @@ export default function RecordPage({
         </div>
         <div className="w-full flex gap-2">
           {isLoading ? (
-            <section className="hidden md:block w-1/5 border-2 border-blue-300 border-opacity-40 rounded my-8 top-5 h-[140px] animate-pulse">
+            <section className="hidden md:block w-1/5 border-2 border-blue-300/40 rounded my-8 top-5 h-[140px] animate-pulse">
               <div className="h-full bg-blue-200 opacity-50 flex justify-center items-center">
                 <p className="text-black text-center">読込中</p>
               </div>
             </section>
           ) : (
-            <section className="hidden md:block w-1/5 bg-blue-200 bg-opacity-20 border-2 border-blue-300 border-opacity-40 rounded p-4 my-8 sticky top-5 h-full">
+            <section className="hidden md:block w-1/5 bg-blue-200/20 border-2 border-blue-300/40 rounded p-4 my-8 sticky top-5 h-full">
               <h3 className="text-start mb-2">記録</h3>
               <div className="ml-3 overflow-hidden">
                 <form className="w-full mb-4" onSubmit={handleCreateFile}>
