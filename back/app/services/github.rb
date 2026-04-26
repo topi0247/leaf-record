@@ -46,47 +46,57 @@ class Github
 
   def get_all_files(repo_name)
     return [] unless repository_exists?(repo_name)
+    return [] if repository_empty?(repo_name)
 
-    @remote_files = get_all_files_recursive(repo_name).flatten
-    @remote_files
+    repository_name = set_repository_name(repo_name)
+    head_sha = @client.ref(repository_name, 'heads/main').object.sha
+
+    # ディレクトリ再帰巡回の代わりに Trees API で全パスを1回のAPIコールで取得
+    tree = @client.tree(repository_name, head_sha, recursive: true)
+    file_blobs = tree.tree.select { |item| item.type == 'blob' }
+
+    # 各ファイルのコンテンツ取得を並列実行
+    futures = file_blobs.map do |blob|
+      Concurrent::Future.execute do
+        content = @client.blob(repository_name, blob.sha)
+        decoded = Base64.decode64(content.content.gsub(/\s+/, ''))
+        { name: File.basename(blob.path), path: blob.path, content: decoded }
+      end
+    end
+
+    @remote_files = futures.map(&:value!)
+  rescue Octokit::Error => e
+    Rails.logger.error e
+    []
   end
 
   def commit_push(repo_name, files, commitMessage)
     repository_name = set_repository_name(repo_name)
     branch = 'main'
 
-    begin
-      # 現在のツリーを取得
-      base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
+    base_tree = @client.ref(repository_name, "heads/#{branch}").object.sha
 
-      blobs = files.map do |file|
+    # blob作成を並列実行
+    futures = files.map do |file|
+      Concurrent::Future.execute do
         if file[:is_delete]
-          # ファイルの削除
           delete_file(file[:path])
         elsif file[:path] == file[:old_path] || file[:old_path].empty?
-          # ファイルの新規作成と更新
           create_or_update_file(repository_name, file)
         else
-          # ファイル名の変更
-          # ファイル名変更のメソッドがないため、削除と新規作成を行う
-          delete_blob = delete_file(file[:old_path])
-          create_blob = create_or_update_file(repository_name, file)
-          [delete_blob, create_blob]
+          [delete_file(file[:old_path]), create_or_update_file(repository_name, file)]
         end
-      end.flatten
-
-      # 新しいツリーを作成
-      new_tree = @client.create_tree(repository_name, blobs, base_tree: base_tree)
-
-      # 新しいコミットを作成
-      new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_tree)
-
-      # リモートリポジトリにプッシュ
-      @client.update_ref(repository_name, "heads/#{branch}", new_commit.sha)
-    rescue Octokit::Error => e
-      Rails.logger.error e
-      { success: false, message: 'コミットに失敗しました'}
+      end
     end
+
+    blobs = futures.map(&:value!).flatten
+
+    new_tree = @client.create_tree(repository_name, blobs, base_tree: base_tree)
+    new_commit = @client.create_commit(repository_name, commitMessage, new_tree.sha, base_tree)
+    @client.update_ref(repository_name, "heads/#{branch}", new_commit.sha)
+  rescue Octokit::Error => e
+    Rails.logger.error e
+    { success: false, message: 'コミットに失敗しました'}
   end
 
   private
@@ -101,40 +111,18 @@ class Github
     true
   end
 
-  def get_all_files_recursive(repo_name, path = '')
-    return [] if repository_empty?(repo_name)
-    contents = @client.contents(set_repository_name(repo_name), path: path)
-
-    files = []
-
-    contents.each do |content|
-      if content.type == 'file'
-        file_contents = @client.contents(set_repository_name(repo_name), path: content.path)
-        files << { name: content.name, path: content.path, content: Base64.decode64(file_contents.content) }
-      elsif content.type == 'dir'
-        files << get_all_files_recursive(repo_name, content.path)
-      end
-    end
-
-    files
-  end
-
   def exist_file_update(repo_name, files)
     return [] if files.nil? || files.empty?
 
     error = []
     files.each do |file|
       begin
-        # contentがnilだとエラーが発生するので空文字を代入
         content = file[:content].presence || ''
-
-        # contentとリモートリポジトリのファイル内容が同じ場合は更新しない
         next if @remote_files.any? { |f| f[:name] == file[:name] && f[:content] == content }
 
         file_contents = @client.contents(set_repository_name(repo_name), path: file[:name])
-
         sha = file_contents.sha
-        @client.update_contents(set_repository_name(repo_name), file[:name], "更新 #{@commitMessage}", sha,content)
+        @client.update_contents(set_repository_name(repo_name), file[:name], "更新 #{@commitMessage}", sha, content)
       rescue Octokit::Error => e
         Rails.logger.error e
         error << "#{file[:name]} の更新に失敗しました"
@@ -150,7 +138,7 @@ class Github
     error = []
     files.each do |file|
       begin
-        content = file[:content] || ''  # 空の内容でも許容する
+        content = file[:content] || ''
         @client.create_contents(set_repository_name(repo_name), file[:name], "作成 #{@commitMessage}", content)
       rescue Octokit::Error => e
         Rails.logger.error e
@@ -168,8 +156,6 @@ class Github
     files.each do |file|
       begin
         file_contents = @client.contents(set_repository_name(repo_name), path: file[:name])
-
-        # ファイルが存在しない場合はスキップ
         next if file_contents.nil?
 
         sha = file_contents.sha
