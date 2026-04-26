@@ -56,6 +56,63 @@ RSpec.describe Github do
     end
   end
 
+  describe '#get_all_files' do
+    let(:ref_double) { double('ref', object: double('object', sha: 'head_sha')) }
+    let(:blob_item_1) { double('item', type: 'blob', path: 'README.md', sha: 'sha1') }
+    let(:blob_item_2) { double('item', type: 'blob', path: 'notes/memo.md', sha: 'sha2') }
+    let(:tree_item_dir) { double('item', type: 'tree', path: 'notes', sha: 'dir_sha') }
+    let(:tree_double) { double('tree', tree: [blob_item_1, blob_item_2, tree_item_dir]) }
+    let(:blob1) { double('blob', content: Base64.encode64('# Hello')) }
+    let(:blob2) { double('blob', content: Base64.encode64('- memo')) }
+
+    before do
+      allow(octokit_client).to receive(:repository).and_return(double('repo'))
+      allow(octokit_client).to receive(:contents).and_return([double('content')])
+      allow(octokit_client).to receive(:ref).and_return(ref_double)
+      allow(octokit_client).to receive(:tree).and_return(tree_double)
+      allow(octokit_client).to receive(:blob).with("#{user.name}/myrepo", 'sha1').and_return(blob1)
+      allow(octokit_client).to receive(:blob).with("#{user.name}/myrepo", 'sha2').and_return(blob2)
+    end
+
+    it 'Trees APIを再帰オプションで呼び出す' do
+      github.get_all_files('myrepo')
+      expect(octokit_client).to have_received(:tree).with("#{user.name}/myrepo", 'head_sha', recursive: true)
+    end
+
+    it 'blobのみを対象にファイル一覧を返す' do
+      result = github.get_all_files('myrepo')
+      expect(result.size).to eq(2)
+      expect(result).to include(
+        { name: 'README.md', path: 'README.md', content: '# Hello' },
+        { name: 'memo.md', path: 'notes/memo.md', content: '- memo' }
+      )
+    end
+
+    context 'リポジトリが存在しない場合' do
+      before { allow(octokit_client).to receive(:repository).and_raise(Octokit::NotFound) }
+
+      it '空配列を返す' do
+        expect(github.get_all_files('myrepo')).to eq([])
+      end
+    end
+
+    context 'リポジトリが空の場合' do
+      before { allow(octokit_client).to receive(:contents).and_raise(Octokit::NotFound) }
+
+      it '空配列を返す' do
+        expect(github.get_all_files('myrepo')).to eq([])
+      end
+    end
+
+    context 'GitHub APIがエラーを返した場合' do
+      before { allow(octokit_client).to receive(:ref).and_raise(Octokit::Error) }
+
+      it '空配列を返す' do
+        expect(github.get_all_files('myrepo')).to eq([])
+      end
+    end
+  end
+
   describe '#commit_push' do
     let(:ref_double) { double('ref', object: double('object', sha: 'base_sha')) }
     let(:tree_double) { double('tree', sha: 'tree_sha') }
