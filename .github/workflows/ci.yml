@@ -121,8 +121,6 @@ jobs:
   vrt:
     name: Playwright VRT
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     defaults:
       run:
@@ -130,9 +128,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -155,22 +150,18 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:8000
           NEXT_PUBLIC_URL: http://localhost:8000
 
-      - name: Update VRT snapshots
-        run: yarn test:vrt:update
+      - name: Run VRT
+        run: yarn test:vrt
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3000
           NEXT_PUBLIC_API_VERSION: v1
           NEXT_PUBLIC_APP_URL: http://localhost:8000
           NEXT_PUBLIC_URL: http://localhost:8000
 
-      - name: Commit updated snapshots
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add e2e/vrt.spec.ts-snapshots/
-          if git diff --cached --quiet; then
-            echo "Snapshots are up to date."
-          else
-            git commit -m "chore(front): update VRT snapshots [skip ci]"
-            git push
-          fi
+      - name: Upload diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-diff
+          path: front/test-results/
+          retention-days: 7
