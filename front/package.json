@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --ignore=e2e/vrt.spec.ts",
     "test:vrt": "playwright test e2e/vrt.spec.ts --reporter=dot",
     "test:vrt:update": "playwright test e2e/vrt.spec.ts --update-snapshots --reporter=dot"
   },
