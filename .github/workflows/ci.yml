@@ -117,3 +117,51 @@ jobs:
           NEXT_PUBLIC_API_VERSION: v1
           NEXT_PUBLIC_APP_URL: http://localhost:8000
           NEXT_PUBLIC_URL: http://localhost:8000
+
+  vrt:
+    name: Playwright VRT
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: front
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'yarn'
+          cache-dependency-path: front/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Next.js
+        run: yarn build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+          NEXT_PUBLIC_API_VERSION: v1
+          NEXT_PUBLIC_APP_URL: http://localhost:8000
+          NEXT_PUBLIC_URL: http://localhost:8000
+
+      - name: Run VRT
+        run: yarn test:vrt
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+          NEXT_PUBLIC_API_VERSION: v1
+          NEXT_PUBLIC_APP_URL: http://localhost:8000
+          NEXT_PUBLIC_URL: http://localhost:8000
+
+      - name: Upload diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-diff
+          path: front/test-results/
+          retention-days: 7

@@ -11,7 +11,9 @@
     "typecheck:tsc": "tsc -p . --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test e2e/home.spec.ts e2e/record.spec.ts",
+    "test:vrt": "playwright test e2e/vrt.spec.ts --reporter=dot",
+    "test:vrt:update": "playwright test e2e/vrt.spec.ts --update-snapshots --reporter=dot"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.6",
